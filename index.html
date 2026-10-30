@@ -482,4 +482,227 @@
     if (e.touches.length >= 2) {
       isDrawing = false;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].client
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartDist = Math.hypot(dx, dy);
+      pinchStartScale = zoomScale;
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      panStartX = midX - panX;
+      panStartY = midY - panY;
+      return;
+    }
+    const t = e.touches[0];
+    if (isPanMode) {
+      isDraggingPan = true;
+      panStartX = t.clientX - panX;
+      panStartY = t.clientY - panY;
+    } else {
+      beginStroke(t.clientX, t.clientY);
+    }
+  }, { passive: false });
+
+  drawCanvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length >= 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      if (pinchStartDist > 0) {
+        zoomScale = Math.min(4, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
+      }
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      panX = midX - panStartX;
+      panY = midY - panStartY;
+      updateStageTransform();
+      return;
+    }
+    const t = e.touches[0];
+    if (isDraggingPan) {
+      panX = t.clientX - panStartX;
+      panY = t.clientY - panStartY;
+      updateStageTransform();
+    } else {
+      moveStroke(t.clientX, t.clientY);
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { isDrawing = false; isDraggingPan = false; pinchStartDist = 0; });
+
+  function setColor(color, dotEl) {
+    isEraser = false; isPanMode = false;
+    document.getElementById('panModeBtn').classList.remove('active');
+    drawCanvas.style.cursor = 'crosshair';
+    currentColor = color;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+    if (dotEl) dotEl.classList.add('active');
+  }
+  function setEraser() {
+    isEraser = true; isPanMode = false;
+    document.getElementById('panModeBtn').classList.remove('active');
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  }
+  function clearDrawCanvas() {
+    if (confirm('내가 그린 그림을 모두 지울까요?')) drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  }
+
+  // 1단계 그림 다운로드
+  function downloadMyDrawing() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = bgCanvas.width; tempCanvas.height = bgCanvas.height;
+    const tCtx = tempCanvas.getContext('2d');
+    tCtx.fillStyle = '#ffffff'; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    if (document.getElementById('mergeTplCheck').checked) tCtx.drawImage(bgCanvas, 0, 0);
+    tCtx.drawImage(drawCanvas, 0, 0);
+    const link = document.createElement('a');
+    link.download = 'my_character.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
+  }
+
+  // 카메라로 찍어서 그림 바로 저장 (정사각형 크롭 후 캔버스 반영 및 즉시 다운로드)
+  function handleCameraPhotoSave(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      const img = new Image();
+      img.onload = () => {
+        fillWhiteBackground();
+        drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        drawCroppedSquareImage(bgCtx, img, bgCanvas.width);
+        document.getElementById('mergeTplCheck').checked = true;
+        downloadMyDrawing();
+        alert('📸 촬영한 손그림이 정사각형으로 저장되었습니다! 이제 2단계에서 바로 올려보세요.');
+        goStep(2);
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function goStep(num) {
+    document.querySelectorAll('.step-btn').forEach((b, i) => b.classList.toggle('active', i === num - 1));
+    document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
+  }
+
+  // 4. 3단계 미디어 업로드, 소개글 순서 및 전체 카드 공유
+  let currentUploadedDataUrl = null;
+  let currentMediaType = 'video';
+
+  function previewUploadedMedia(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (10MB 이하로 올려주세요).');
+    currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
+    const reader = new FileReader();
+    reader.onload = evt => {
+      currentUploadedDataUrl = evt.target.result;
+      document.getElementById('mediaPreviewBox').innerHTML = currentMediaType === 'video'
+        ? `<video id="uploadedVideoEl" src="${currentUploadedDataUrl}" autoplay loop muted playsinline></video>`
+        : `<img id="uploadedImgEl" src="${currentUploadedDataUrl}" alt="캐릭터">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function createStudentCard() {
+    const charName = document.getElementById('charName').value.trim();
+    const charStory = document.getElementById('charStory').value.trim();
+    const creatorName = document.getElementById('creatorName').value.trim();
+    if (!currentUploadedDataUrl) return alert('2단계에서 저장한 움직이는 캐릭터(MP4) 파일을 먼저 선택해 주세요!');
+    if (!charName || !charStory || !creatorName) return alert('1. 캐릭터 이름, 2. 캐릭터 이야기, 3. 창조주 이름을 모두 적어주세요!');
+
+    document.getElementById('cardMediaSlot').innerHTML = currentMediaType === 'video'
+      ? `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
+      : `<img src="${currentUploadedDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
+    document.getElementById('cardTitleSlot').innerText = charName;
+    document.getElementById('cardStorySlot').innerText = charStory;
+    document.getElementById('cardCreatorSlot').innerText = `창조주: ${creatorName}`;
+
+    document.getElementById('resultCardBox').classList.add('show');
+    document.getElementById('resultCardBox').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // 요청하신 서식: 캐릭터 이름 -> 캐릭터 이야기 -> (한 줄 띄우고) -> 창조주 이름
+  function copyCardContent() {
+    const charName = document.getElementById('charName').value.trim();
+    const charStory = document.getElementById('charStory').value.trim();
+    const creatorName = document.getElementById('creatorName').value.trim();
+    
+    const textToCopy = `1. 캐릭터 이름: ${charName}\n2. 캐릭터 이야기: ${charStory}\n\n3. 창조주: ${creatorName}`;
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      alert('📋 소개글이 복사되었습니다!\n패들렛에 붙여넣기(Ctrl+V) 하세요.');
+    });
+  }
+
+  function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+  // 움직이는 캐릭터 영상 + 소개글이 하나로 합쳐진 독립 웹 카드(.html) 다운로드
+  function downloadCompleteHtmlCard() {
+    const charName = document.getElementById('charName').value.trim();
+    const charStory = document.getElementById('charStory').value.trim();
+    const creatorName = document.getElementById('creatorName').value.trim();
+    if (!currentUploadedDataUrl) return;
+
+    const mediaTag = currentMediaType === 'video'
+      ? `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; max-height:320px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
+      : `<img src="${currentUploadedDataUrl}" style="width:100%; max-height:320px; object-fit:contain; border-radius:12px; background:#fff;">`;
+
+    const cardHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><style>body{font-family:'Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:90vh;}.card{max-width:700px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;}.creator{font-weight:bold;color:#64748b;}</style></head><body><div class="card"><div>${mediaTag}</div><div><h1>${escapeHtml(charName)}</h1><div class="story">${escapeHtml(charStory)}</div><div class="creator">창조주: ${escapeHtml(creatorName)}</div></div></div></body></html>`;
+
+    const blob = new Blob([cardHtml], { type: 'text/html;charset=utf-8' });
+    const link = document.createElement('a');
+    link.download = `${charName}_${creatorName}_캐릭터카드.html`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  }
+
+  // 전체 카드를 한 장의 이미지(PNG)로 합쳐서 저장 (패들렛에 바로 이미지로 올라감)
+  function downloadCardAsImage() {
+    const charName = document.getElementById('charName').value.trim();
+    const charStory = document.getElementById('charStory').value.trim();
+    const creatorName = document.getElementById('creatorName').value.trim();
+    if (!currentUploadedDataUrl) return;
+
+    const c = document.createElement('canvas');
+    c.width = 800; c.height = 450;
+    const ctx = c.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.strokeStyle = '#4A90E2';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, c.width - 8, c.height - 8);
+
+    const mediaEl = document.getElementById('uploadedVideoEl') || document.getElementById('uploadedImgEl');
+    if (mediaEl) {
+      ctx.drawImage(mediaEl, 30, 45, 340, 340);
+    }
+
+    ctx.fillStyle = '#4A90E2';
+    ctx.font = 'bold 28px Malgun Gothic, sans-serif';
+    ctx.fillText(`1. 캐릭터 이름: ${charName}`, 400, 85);
+
+    ctx.fillStyle = '#334155';
+    ctx.font = '20px Malgun Gothic, sans-serif';
+    const lines = charStory.split('\n');
+    let y = 140;
+    lines.forEach(line => {
+      for (let i = 0; i < line.length; i += 17) {
+        ctx.fillText(line.slice(i, i + 17), 400, y);
+        y += 30;
+      }
+    });
+
+    y += 20; // 한 줄 띄우기
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 22px Malgun Gothic, sans-serif';
+    ctx.fillText(`3. 창조주: ${creatorName}`, 400, Math.min(y, 400));
+
+    const link = document.createElement('a');
+    link.download = `${charName}_소개카드.png`;
+    link.href = c.toDataURL('image/png');
+    link.click();
+  }
+</script>
+</body>
+</html>
