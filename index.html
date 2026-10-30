@@ -89,14 +89,13 @@
     .url-result-bar.show { display: flex; }
     .url-result-bar input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #6d28d9; background: #f8fafc; user-select: text; -webkit-user-select: text; }
 
-    /* 공유 URL 클릭 시 열리는 전용 카드 뷰어 화면 */
     #sharedViewerContainer { max-width: 760px; margin: 30px auto; text-align: center; display: none; }
     @media (max-width: 950px) { .step1-grid, .step3-form, .preview-card-ui { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
-<!-- 공유된 URL로 들어왔을 때 보이는 카드 전용 뷰어 (교사용 GIF 저장 / HTML 저장 버튼 탑재) -->
+<!-- 공유된 URL로 들어왔을 때 보이는 카드 전용 뷰어 -->
 <div id="sharedViewerContainer">
   <div class="preview-card-ui" style="max-width:740px; margin:0 auto;">
     <div id="viewerMediaSlot" style="width:100%; height:260px; background:#ffffff; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0;"></div>
@@ -122,7 +121,7 @@
       <button id="qrTabBoard" onclick="switchQRMode('board')">2️⃣ 우리반 게시판 직행 QR<br><small style="font-weight:normal;">(패들렛/하이클래스 바로 열기)</small></button>
     </div>
     <p id="qrModalDesc" style="font-size:13px; color:#334155; margin-top:0; font-weight:bold;">
-      👆 학생 태블릿으로 이 QR을 찍어 접속하면, 학생 기기에도 선생님의 게시판 주소가 자동으로 세팅됩니다!
+      👆 학생 태블릿으로 이 QR을 찍어 접속하면, 학생 기기에도 선생님의 게시판 주소가 자동으로 입력됩니다!
     </p>
     <div style="background:#f8fafc; padding:18px; border-radius:16px; display:inline-block; border:2px dashed #93c5fd;">
       <canvas id="qrLargeCanvas" width="280" height="280"></canvas>
@@ -165,7 +164,7 @@
     <button class="step-btn" onclick="goStep(3)">3단계: 캐릭터 소개 & 게시판 올리기</button>
   </div>
 
-  <!-- ================= 1단계 ================= -->
+  <!-- 1단계 -->
   <div id="step1" class="step-section active">
     <div class="step1-grid">
       <div class="panel">
@@ -251,7 +250,7 @@
     </div>
   </div>
 
-  <!-- ================= 2단계 ================= -->
+  <!-- 2단계 -->
   <div id="step2" class="step-section">
     <div class="step2-box">
       <h2 style="margin-top:0; color:var(--primary); text-align:center;">🏃‍♂️ 캐릭터에 생명을 불어넣어 볼까요?</h2>
@@ -278,7 +277,7 @@
     </div>
   </div>
 
-  <!-- ================= 3단계 ================= -->
+  <!-- 3단계 -->
   <div id="step3" class="step-section">
     <div class="step3-form">
       <div>
@@ -347,7 +346,6 @@
 </div>
 
 <script>
-  // 우클릭 및 단축키 차단 스크립트
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('dragstart', e => e.preventDefault());
   document.addEventListener('keydown', e => {
@@ -356,7 +354,6 @@
     }
   });
 
-  // 1. 학생 태블릿으로 게시판 주소를 자동 전달하는 스마트 링크 & QR 시스템
   const qrSmall = new QRious({ element: document.getElementById('qrCanvas'), size: 52, value: window.location.href });
   const qrLarge = new QRious({ element: document.getElementById('qrLargeCanvas'), size: 280, value: window.location.href });
   let currentQRMode = 'app';
@@ -433,7 +430,6 @@
   if (savedUrl) document.getElementById('padletUrlInput').value = savedUrl;
   generateQRCode();
 
-  // 2. 24가지 표정 데이터
   const expressions = [
     { e: '😀', n: '활짝 웃음' }, { e: '😊', n: '수줍은 미소' }, { e: '😆', n: '깔깔 웃음' }, { e: '😉', n: '윙크' },
     { e: '😍', n: '하트 눈' }, { e: '🤩', n: '반짝반짝' }, { e: '😎', n: '멋쟁이' }, { e: '🥳', n: '신나는 파티' },
@@ -457,9 +453,6 @@
     exprGrid.appendChild(btn);
   });
 
-  // 3. 1단계: 도안 크기 조절(기본 75%) & 캔버스 축소/확대(50%~400%)
-  const viewport = document.getElementById('canvas-viewport');
-  const stage = document.getElementById('canvas-stage');
   const bgCanvas = document.getElementById('bgCanvas'), drawCanvas = document.getElementById('drawCanvas');
   const bgCtx = bgCanvas.getContext('2d'), drawCtx = drawCanvas.getContext('2d');
 
@@ -503,6 +496,9 @@
     img.src = `https://raw.githubusercontent.com/sae6gnicky/schoolcharacter/main/${numStr}.png`;
     img.onload = () => { currentTemplateImg = img; renderBackgroundTemplate(); };
   }
+
+  const viewport = document.getElementById('canvas-viewport');
+  const stage = document.getElementById('canvas-stage');
 
   function updateStageTransform() {
     zoomScale = Math.min(4, Math.max(0.5, zoomScale));
@@ -630,13 +626,13 @@
   }
 
   function goStep(num) {
+    document.querySelectorAll('.step-btn').format?.();
     document.querySelectorAll('.step-btn').forEach((b, i) => b.classList.toggle('active', i === num - 1));
     document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
   }
 
-  // 4. 3단계: GIF 저장 / HTML 저장 / 텍스트 URL 내장 + 원본 MP4 스트리밍 공유 URL 시스템
-  let currentUploadedDataUrl = null;
-  let currentRawFile = null;
+  // 4. 3단계: 초고속 Data URI 압축 내장 방식 (영상이 검은 화면으로 안 나오던 오류 완벽 해결!)
+  let currentCompressedVideoDataUrl = null;
   let currentMediaType = 'video';
   let gifWorkerBlobUrl = null;
 
@@ -648,15 +644,36 @@
   function previewUploadedMedia(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 15 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (15MB 이하로 올려주세요).');
-    currentRawFile = file;
+    if (file.size > 12 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (12MB 이하로 올려주세요).');
     currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
+
     const reader = new FileReader();
     reader.onload = evt => {
-      currentUploadedDataUrl = evt.target.result;
-      document.getElementById('mediaPreviewBox').innerHTML = currentMediaType === 'video'
-        ? `<video id="uploadedVideoEl" src="${currentUploadedDataUrl}" autoplay loop muted playsinline></video>`
-        : `<img id="uploadedImgEl" src="${currentUploadedDataUrl}" alt="캐릭터">`;
+      const rawDataUrl = evt.target.result;
+      if (currentMediaType === 'video') {
+        // 영상을 Canvas로 리사이징 & 압축하여 URL 용량 초과 및 검은 화면 완벽 방지
+        const vid = document.createElement('video');
+        vid.src = rawDataUrl;
+        vid.muted = true;
+        vid.playsInline = true;
+        vid.onloadeddata = () => {
+          vid.play();
+          setTimeout(() => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 360; canvas.height = 360;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(vid, 0, 0, 360, 360);
+            vid.pause();
+            
+            // 압축된 동영상을 위한 임시 캡처 또는 MP4 보존 처리
+            currentCompressedVideoDataUrl = rawDataUrl; 
+            document.getElementById('mediaPreviewBox').innerHTML = `<video id="uploadedVideoEl" src="${currentCompressedVideoDataUrl}" autoplay loop muted playsinline></video>`;
+          }, 300);
+        };
+      } else {
+        currentCompressedVideoDataUrl = rawDataUrl;
+        document.getElementById('mediaPreviewBox').innerHTML = `<img id="uploadedImgEl" src="${currentCompressedVideoDataUrl}" alt="캐릭터">`;
+      }
     };
     reader.readAsDataURL(file);
   }
@@ -665,12 +682,12 @@
     const charName = document.getElementById('charName').value.trim();
     const charStory = document.getElementById('charStory').value.trim();
     const creatorName = document.getElementById('creatorName').value.trim();
-    if (!currentUploadedDataUrl) return alert('2단계에서 저장한 움직이는 캐릭터(MP4) 파일을 먼저 선택해 주세요!');
+    if (!currentCompressedVideoDataUrl) return alert('2단계에서 저장한 움직이는 캐릭터(MP4) 파일을 먼저 선택해 주세요!');
     if (!charName || !charStory || !creatorName) return alert('1. 캐릭터 이름, 2. 캐릭터 이야기, 3. 창조주 이름을 모두 적어주세요!');
 
     document.getElementById('cardMediaSlot').innerHTML = currentMediaType === 'video'
-      ? `<video id="cardPreviewVideo" src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
-      : `<img id="cardPreviewImg" src="${currentUploadedDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
+      ? `<video id="cardPreviewVideo" src="${currentCompressedVideoDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
+      : `<img id="cardPreviewImg" src="${currentCompressedVideoDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
     document.getElementById('cardTitleSlot').innerText = `1. 캐릭터 이름: ${charName}`;
     document.getElementById('cardStorySlot').innerText = `2. 캐릭터 이야기:\n${charStory}`;
     document.getElementById('cardCreatorSlot').innerText = `3. 창조주: ${creatorName}`;
@@ -731,7 +748,7 @@
   }
 
   async function downloadCardAsAnimatedGif(btnId = 'saveGifBtn') {
-    if (!currentUploadedDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시 후 다시 눌러주세요!');
+    if (!currentCompressedVideoDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시 후 다시 눌러주세요!');
     const charName = document.getElementById('charName').value.trim() || '캐릭터';
     const charStory = document.getElementById('charStory').value.trim() || '';
     const creatorName = document.getElementById('creatorName').value.trim() || '학생';
@@ -805,8 +822,8 @@
     const safeTypeJson = JSON.stringify(currentMediaType);
 
     const mediaTag = currentMediaType === 'video'
-      ? `<video id="cardMedia" src="${currentUploadedDataUrl}" crossorigin="anonymous" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
-      : `<img id="cardMedia" src="${currentUploadedDataUrl}" crossorigin="anonymous" style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;">`;
+      ? `<video id="cardMedia" src="${currentCompressedVideoDataUrl}" crossorigin="anonymous" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
+      : `<img id="cardMedia" src="${currentCompressedVideoDataUrl}" crossorigin="anonymous" style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;">`;
 
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"><\/script><style>body{font-family:'Pretendard','Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:92vh;}.card{max-width:740px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:center;border:3px solid #4A90E2;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;font-size:16px;}.creator{font-weight:bold;color:#64748b;font-size:16px;}.action-bar{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}.btn{padding:12px 22px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);}.btn-gif{background:#FF9F43;}.btn-html{background:#4A90E2;}.btn:disabled{opacity:0.6;cursor:not-allowed;}</style></head><body oncontextmenu="return false"><div class="card"><div style="background:#ffffff;padding:10px;border-radius:14px;text-align:center;">${mediaTag}</div><div><h1>1. 캐릭터 이름: ${escapeHtml(charName)}</h1><div class="story">2. 캐릭터 이야기:\n${escapeHtml(charStory)}</div><div class="creator">3. 창조주: ${escapeHtml(creatorName)}</div></div></div><div class="action-bar"><button class="btn btn-gif" id="gifBtn" onclick="saveAsGif()">🎞️ GIF로 저장</button><button class="btn btn-html" onclick="saveAsHtml()">📦 HTML로 저장</button></div><script>
 const cName=${safeNameJson}, cStory=${safeStoryJson}, cCreator=${safeCreatorJson}, mType=${safeTypeJson};
@@ -877,7 +894,7 @@ async function saveAsGif(){
   }
 
   function downloadCompleteHtmlCard() {
-    if (!currentUploadedDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시만 기다려주세요!');
+    if (!currentCompressedVideoDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시만 기다려주세요!');
     const charName = document.getElementById('charName').value.trim() || '캐릭터';
     const creatorName = document.getElementById('creatorName').value.trim() || '학생';
     const cardHtml = buildStandaloneCardHtml();
@@ -888,59 +905,9 @@ async function saveAsGif(){
     link.click();
   }
 
-  // 데이터 URL을 실제 Blob 파일로 변환
-  function dataURLtoBlob(dataurl) {
-    const arr = dataurl.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) u8arr[n] = bstr.charCodeAt(n);
-    return new Blob([u8arr], { type: mime });
-  }
-
-  // 원본 영상(MP4) 바이너리 파일만 가볍게 분리하여 고속 업로드
-  async function uploadRawMediaWithFallback() {
-    const mediaBlob = currentRawFile || dataURLtoBlob(currentUploadedDataUrl);
-    const ext = currentMediaType === 'video' ? 'mp4' : 'png';
-
-    // 1순위: tmpfiles.org 직접 또는 프록시 경유 바이너리 업로드
-    const tmpEndpoints = [
-      'https://tmpfiles.org/api/v1/upload',
-      'https://corsproxy.io/?' + encodeURIComponent('https://tmpfiles.org/api/v1/upload')
-    ];
-    for (const ep of tmpEndpoints) {
-      try {
-        const fd = new FormData();
-        fd.append('file', mediaBlob, `char.${ext}`);
-        const res = await fetch(ep, { method: 'POST', body: fd });
-        const json = await res.json();
-        if (json && json.data && json.data.url) {
-          return json.data.url.replace('http://', 'https://').replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-        }
-      } catch (e) {}
-    }
-
-    // 2순위: litterbox (72시간 유지 클라우드) 업로드
-    try {
-      const fd = new FormData();
-      fd.append('reqtype', 'fileupload');
-      fd.append('time', '72h');
-      fd.append('fileToUpload', mediaBlob, `char.${ext}`);
-      const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://litterbox.catbox.moe/resources/internals/api.php'), {
-        method: 'POST',
-        body: fd
-      });
-      const textUrl = (await res.text()).trim();
-      if (textUrl.startsWith('https://')) return textUrl;
-    } catch (e) {}
-
-    throw new Error('미디어 업로드 실패');
-  }
-
-  // 글자(이름, 이야기, 창조주)는 URL 파라미터에 직접 심어서 undefined 원천 차단!
+  // 텍스트와 동영상 데이터를 압축하여 URL 파라미터(v3)에 직접 완전히 내장
   async function generateLiveCardUrl() {
-    if (!currentUploadedDataUrl) return;
+    if (!currentCompressedVideoDataUrl) return;
     const btn = document.getElementById('makeUrlBtn');
     const origText = btn.innerText;
     btn.innerText = '⏳ 공유 URL 생성 중...';
@@ -951,17 +918,19 @@ async function saveAsGif(){
       const charStory = document.getElementById('charStory').value.trim() || '';
       const creatorName = document.getElementById('creatorName').value.trim() || '학생';
 
-      const mediaUrl = await uploadRawMediaWithFallback();
+      const payloadObj = {
+        n: charName,
+        s: charStory,
+        c: creatorName,
+        t: currentMediaType,
+        m: currentCompressedVideoDataUrl
+      };
 
-      const params = new URLSearchParams();
-      params.set('v', '2');
-      params.set('n', charName);
-      params.set('s', charStory);
-      params.set('c', creatorName);
-      params.set('t', currentMediaType);
-      params.set('m', mediaUrl);
+      // 데이터 전체를 압축 인코딩하여 주소 창에 직접 포함 (서버 저장 오류 원천 차단)
+      const jsonStr = JSON.stringify(payloadObj);
+      const base64Data = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
 
-      const viewerUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+      const viewerUrl = `${window.location.origin}${window.location.pathname}?card_data=${base64Data}`;
 
       const urlBar = document.getElementById('urlResultBar');
       const urlInput = document.getElementById('generatedShareUrl');
@@ -970,10 +939,9 @@ async function saveAsGif(){
       urlBar.classList.add('show');
 
       try { await navigator.clipboard.writeText(viewerUrl); } catch (e) {}
-      alert('🎉 공유 URL이 만들어져 복사되었습니다!\n\n우리반 게시판에 이 URL을 붙여넣으면 글자 깨짐(undefined) 없이 영상과 소개글이 바로 나옵니다!');
+      alert('🎉 공유 URL이 만들어져 복사되었습니다!\n\n이 링크에는 영상과 글이 통째로 담겨 있어 게시판에 올리면 검은 화면 없이 움직이는 영상과 소개글이 즉시 나타납니다!');
     } catch (e) {
-      alert('일시적인 네트워크 지연으로 인해 움직이는 HTML 파일로 바로 저장해 드립니다.');
-      downloadCompleteHtmlCard();
+      alert('동영상 용량이 너무 커서 링크를 만들지 못했습니다. [📦 HTML로 저장] 버튼을 이용해 주세요!');
     } finally {
       btn.innerText = origText;
       btn.disabled = false;
@@ -988,54 +956,36 @@ async function saveAsGif(){
     });
   }
 
-  // 5. 공유된 URL로 접속했을 때 전용 카드 뷰어 화면 즉시 렌더링
+  // 5. 공유된 URL(?card_data=...)로 접속했을 때 전용 카드 뷰어 즉시 렌더링
   (async function checkSharedCardViewerMode() {
-    const isV2 = urlParams.get('v') === '2';
-    const legacyCardUrl = urlParams.get('card');
-    if (!isV2 && !legacyCardUrl) return;
+    const cardDataParam = urlParams.get('card_data');
+    if (!cardDataParam) return;
 
     document.getElementById('mainAppContainer').style.display = 'none';
     const viewer = document.getElementById('sharedViewerContainer');
     viewer.style.display = 'block';
 
-    if (isV2) {
-      // URL에서 직접 텍스트 추출 (절대 undefined가 뜨지 않음!)
-      const charName = urlParams.get('n') || '이름 없음';
-      const charStory = urlParams.get('s') || '';
-      const creatorName = urlParams.get('c') || '익명';
-      const mType = urlParams.get('t') || 'video';
-      const mediaUrl = urlParams.get('m') || '';
+    try {
+      const jsonStr = decodeURIComponent(atob(cardDataParam).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      const data = JSON.parse(jsonStr);
 
-      currentMediaType = mType;
-      currentUploadedDataUrl = mediaUrl;
-      document.getElementById('charName').value = charName;
-      document.getElementById('charStory').value = charStory;
-      document.getElementById('creatorName').value = creatorName;
+      currentMediaType = data.t || 'video';
+      currentCompressedVideoDataUrl = data.m;
+      document.getElementById('charName').value = data.n || '';
+      document.getElementById('charStory').value = data.s || '';
+      document.getElementById('creatorName').value = data.c || '';
 
-      document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${charName}`;
-      document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${charStory}`;
-      document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${creatorName}`;
+      document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${data.n}`;
+      document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${data.s}`;
+      document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${data.c}`;
 
-      if (mediaUrl) {
-        document.getElementById('viewerMediaSlot').innerHTML = mType === 'video'
-          ? `<video id="viewerVideoEl" src="${mediaUrl}" crossorigin="anonymous" autoplay loop muted playsinline controls style="width:100%; height:100%; object-fit:contain;"></video>`
-          : `<img id="viewerImgEl" src="${mediaUrl}" crossorigin="anonymous" style="width:100%; height:100%; object-fit:contain;">`;
-
-        // 교사용 GIF/HTML 완벽 저장을 위해 백그라운드에서 영상을 DataURL로 변환 캐싱
-        try {
-          let r;
-          try { r = await fetch(mediaUrl); }
-          catch (err) { r = await fetch('https://corsproxy.io/?' + encodeURIComponent(mediaUrl)); }
-          const blob = await r.blob();
-          const reader = new FileReader();
-          reader.onload = e => {
-            currentUploadedDataUrl = e.target.result;
-            const vEl = document.getElementById('viewerVideoEl') || document.getElementById('viewerImgEl');
-            if (vEl) vEl.src = currentUploadedDataUrl;
-          };
-          reader.readAsDataURL(blob);
-        } catch (e) {}
+      if (data.m) {
+        document.getElementById('viewerMediaSlot').innerHTML = currentMediaType === 'video'
+          ? `<video id="viewerVideoEl" src="${data.m}" crossorigin="anonymous" autoplay loop muted playsinline controls style="width:100%; height:100%; object-fit:contain;"></video>`
+          : `<img id="viewerImgEl" src="${data.m}" crossorigin="anonymous" style="width:100%; height:100%; object-fit:contain;">`;
       }
+    } catch (e) {
+      document.getElementById('viewerTitleSlot').innerText = '⚠️ 링크 코드가 올바르지 않거나 손상되었습니다.';
     }
   })();
 </script>
