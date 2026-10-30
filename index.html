@@ -194,4 +194,370 @@
         <li>아래 파란색 <strong>[Animated Drawings 열기]</strong> 버튼을 눌러 이동합니다.</li>
         <li>사이트에서 <strong>[Get Started]</strong> ➔ <strong>[Upload Photo]</strong>를 눌러 내 캐릭터 그림을 올립니다.</li>
         <li>상자 크기를 맞추고, 관절 위치를 콕콕 찍어 맞춥니다.</li>
-        <li>마음에 드는 재미있는 동작(춤추기, 점프하기, 걷기 등)을
+        <li>마음에 드는 재미있는 동작(춤추기, 점프하기, 걷기 등)을 고릅니다.</li>
+        <li>화면의 <strong>[Share]</strong> 버튼이나 전체화면 버튼을 눌러 완성된 영상(MP4)을 기기에 저장합니다.</li>
+      </ol>
+      <div style="text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운로드</button>
+        <a href="https://sketch.metademolab.com/canvas" target="_blank" class="btn btn-primary" style="text-decoration:none; display:inline-block;">🚀 Meta Animated Drawings 열기 (새 창)</a>
+      </div>
+    </div>
+    <div class="next-bar">
+      <button class="btn btn-outline" onclick="goStep(1)">👈 1단계로 돌아가기</button>
+      <button class="btn btn-primary" onclick="goStep(3)">영상을 저장했어요! 3단계로 이동 👉</button>
+    </div>
+  </div>
+
+  <!-- 3단계 -->
+  <div id="step3" class="step-section">
+    <div class="step3-form">
+      <div>
+        <div class="video-preview-box" id="mediaPreviewBox">
+          <span style="color:#94a3b8; font-size:14px; text-align:center; padding:15px;">
+            2단계에서 저장한<br><strong>움직이는 영상(MP4)</strong>을<br>아래 버튼으로 올려주세요!
+          </span>
+        </div>
+        <label class="btn btn-secondary" style="display:block; text-align:center;">
+          📂 움직이는 캐릭터 파일(MP4/GIF) 선택
+          <input type="file" id="mediaUpload" accept="video/mp4,video/webm,image/gif,image/png" style="display:none;" onchange="previewUploadedMedia(event)">
+        </label>
+      </div>
+
+      <div>
+        <h3 style="margin-top:0; color:var(--primary);">📝 내 캐릭터를 소개합니다</h3>
+        <div class="form-group">
+          <label>캐릭터 이름</label>
+          <input type="text" id="charName" placeholder="예: 씩씩한 지우개 몽이">
+        </div>
+        <div class="form-group">
+          <label>창조주 이름 (학생 이름 또는 번호)</label>
+          <input type="text" id="creatorName" placeholder="예: 2학년 1반 김하늘">
+        </div>
+        <div class="form-group">
+          <label>캐릭터 이야기 (어떤 물건이고 어떤 성격이나 능력이 있나요?)</label>
+          <textarea id="charStory" placeholder="예: 교실 칠판 밑에 사는 지우개 요정이에요. 친구들이 틀린 글씨를 쓰면 밤마다 몰래 춤을 추면서 깨끗하게 지워준답니다!"></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="submitCharacter()">✨ 우리반 게시판에 올리기</button>
+      </div>
+    </div>
+
+    <div class="board-header">
+      <h2 style="margin:0; font-size:20px;">🖼️ 우리반 사물 캐릭터 박물관 (<span id="roomTitleDisplay">2학년1반</span>)</h2>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline" style="padding:8px 14px; font-size:13px;" onclick="exportToTeacherPC()">💾 선생님 PC로 게시판 전체 저장 (백업)</button>
+        <label class="btn btn-outline" style="padding:8px 14px; font-size:13px; margin:0;">
+          📂 백업 파일 불러오기
+          <input type="file" accept=".json" style="display:none;" onchange="importBackupFile(event)">
+        </label>
+      </div>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  // 우클릭 및 단축키 차단 스크립트
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) || (e.ctrlKey && ['U','u','S','s'].includes(e.key)) || (e.metaKey && e.altKey && ['I','i','J','j','U','u'].includes(e.key))) {
+      e.preventDefault(); return false;
+    }
+  });
+
+  let db = null, isFirebaseConnected = false, activeConfig = null;
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentRoom = urlParams.get('room') || localStorage.getItem('saved_room_name') || '2학년1반';
+  document.getElementById('roomInput').value = currentRoom;
+  document.getElementById('roomTitleDisplay').innerText = currentRoom;
+
+  function toggleSetupBanner() { document.getElementById('setupBanner').classList.toggle('show'); }
+
+  function extractConfigFromRawText(rawText) {
+    const keys = ['apiKey', 'authDomain', 'databaseURL', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+    const extracted = {};
+    keys.forEach(k => {
+      const match = rawText.match(new RegExp(k + '\\s*:\\s*["\']([^"\']+)["\']'));
+      if (match && match[1]) extracted[k] = match[1].trim();
+    });
+    if (!extracted.databaseURL && extracted.projectId) {
+      extracted.databaseURL = `https://${extracted.projectId}-default-rtdb.firebaseio.com`;
+    }
+    return extracted;
+  }
+
+  function connectFirebaseWithConfig(cfg) {
+    try {
+      if (!cfg || !cfg.apiKey || !cfg.projectId) return false;
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      db = firebase.database();
+      isFirebaseConnected = true;
+      activeConfig = cfg;
+      const badge = document.getElementById('dbStatusBadge');
+      badge.className = 'status-badge connected';
+      badge.innerText = '✅ 실시간 게시판 연결됨';
+      document.getElementById('setupBanner').classList.remove('show');
+      listenToBoard();
+      return true;
+    } catch (err) { return false; }
+  }
+
+  function autoParseAndConnect() {
+    const raw = document.getElementById('rawConfigInput').value;
+    if (!raw.trim()) return alert('Firebase 설정 코드를 입력칸에 붙여넣어 주세요!');
+    const parsed = extractConfigFromRawText(raw);
+    if (!parsed.apiKey || !parsed.projectId) return alert('apiKey 또는 projectId를 찾을 수 없습니다.');
+    localStorage.setItem('teacher_firebase_config', JSON.stringify(parsed));
+    if (connectFirebaseWithConfig(parsed)) {
+      alert('🎉 연결되었습니다! 상단의 [🔗 학생 배포용 링크 복사]를 눌러 학생들에게 공유하세요.');
+    }
+  }
+
+  function clearSavedConfig() {
+    if (confirm('저장된 연결 설정을 초기화할까요?')) {
+      localStorage.removeItem('teacher_firebase_config');
+      location.href = window.location.pathname;
+    }
+  }
+
+  function copyStudentShareLink() {
+    const baseUrl = `${window.location.origin}${window.location.pathname}`;
+    const params = new URLSearchParams();
+    params.set('room', currentRoom);
+    if (activeConfig) params.set('cfg', btoa(encodeURIComponent(JSON.stringify(activeConfig))));
+    navigator.clipboard.writeText(`${baseUrl}?${params.toString()}`).then(() => {
+      alert(activeConfig ? `✅ [학생 배포용 링크]가 복사되었습니다!\n학생들이 접속하면 바로 (${currentRoom}) 게시판으로 연결됩니다.` : `⚠️ 아직 DB가 연결되지 않은 링크가 복사되었습니다.`);
+    });
+  }
+
+  (function initDatabaseConnection() {
+    const cfgParam = urlParams.get('cfg');
+    if (cfgParam) {
+      try {
+        const decoded = JSON.parse(decodeURIComponent(atob(cfgParam)));
+        localStorage.setItem('teacher_firebase_config', JSON.stringify(decoded));
+        if (connectFirebaseWithConfig(decoded)) return;
+      } catch (e) {}
+    }
+    const saved = localStorage.getItem('teacher_firebase_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        document.getElementById('rawConfigInput').value = JSON.stringify(parsed, null, 2);
+        if (connectFirebaseWithConfig(parsed)) return;
+      } catch (e) {}
+    }
+    document.getElementById('setupBanner').classList.add('show');
+  })();
+
+  const expressions = [
+    { e: '😀', n: '활짝 웃음' }, { e: '😊', n: '수줍은 미소' }, { e: '😆', n: '깔깔 웃음' }, { e: '😉', n: '윙크' },
+    { e: '😍', n: '하트 눈' }, { e: '🤩', n: '반짝반짝' }, { e: '😎', n: '멋쟁이' }, { e: '🥳', n: '신나는 파티' },
+    { e: '😋', n: '냠냠 맛있다' }, { e: '😜', n: '메롱 장난' }, { e: '🤔', n: '곰곰이 생각' }, { e: '🤨', n: '물음표 갸우뚱' },
+    { e: '😮', n: '입 벌리고 놀람' }, { e: '😱', n: '으악 깜짝이야' }, { e: '😳', n: '얼굴 빨개짐' }, { e: '🥺', n: '초롱초롱 부탁' },
+    { e: '😢', n: '주르륵 눈물' }, { e: '😭', n: '엉엉 대성통곡' }, { e: '😤', n: '흥칫뿡 삐짐' }, { e: '😡', n: '부글부글 화남' },
+    { e: '😴', n: '쿨쿨 졸림' }, { e: '😵‍💫', n: '빙글빙글 어지러움' }, { e: '🤒', n: '콜록콜록 아픔' }, { e: '🤠', n: '용감한 탐험가' }
+  ];
+
+  const exprGrid = document.getElementById('exprGrid');
+  expressions.forEach((item, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'expr-btn' + (idx === 0 ? ' active' : '');
+    btn.innerHTML = `${item.e}<span>${item.n}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('selectedEmoji').innerText = item.e;
+      document.getElementById('selectedLabel').innerText = item.n;
+    };
+    exprGrid.appendChild(btn);
+  });
+
+  const bgCanvas = document.getElementById('bgCanvas'), drawCanvas = document.getElementById('drawCanvas');
+  const bgCtx = bgCanvas.getContext('2d'), drawCtx = drawCanvas.getContext('2d');
+  let isDrawing = false, currentColor = '#000000', isEraser = false;
+
+  function fillWhiteBackground() {
+    bgCtx.fillStyle = '#ffffff';
+    bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+  }
+  fillWhiteBackground();
+
+  function loadTemplate(num, btnEl) {
+    document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    fillWhiteBackground();
+    if (num === 0) return;
+    const numStr = String(num).padStart(2, '0');
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = `https://raw.githubusercontent.com/sae6gnicky/schoolcharacter/main/${numStr}.png`;
+    img.onload = () => bgCtx.drawImage(img, 0, 0, bgCanvas.width, bgCanvas.height);
+  }
+
+  function getPos(e) {
+    const rect = drawCanvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (cx - rect.left) * (drawCanvas.width / rect.width), y: (cy - rect.top) * (drawCanvas.height / rect.height) };
+  }
+
+  function startDraw(e) { e.preventDefault(); isDrawing = true; const p = getPos(e); drawCtx.beginPath(); drawCtx.moveTo(p.x, p.y); }
+  function moveDraw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const p = getPos(e);
+    drawCtx.lineWidth = document.getElementById('lineWidth').value;
+    drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+    drawCtx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+    if (!isEraser) drawCtx.strokeStyle = currentColor;
+    drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
+  }
+  function endDraw() { isDrawing = false; }
+
+  drawCanvas.addEventListener('mousedown', startDraw); drawCanvas.addEventListener('mousemove', moveDraw); window.addEventListener('mouseup', endDraw);
+  drawCanvas.addEventListener('touchstart', startDraw, { passive: false }); drawCanvas.addEventListener('touchmove', moveDraw, { passive: false }); window.addEventListener('touchend', endDraw);
+
+  function setColor(color, dotEl) {
+    isEraser = false; currentColor = color;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+    if (dotEl) dotEl.classList.add('active');
+  }
+  function setEraser() { isEraser = true; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); }
+  function clearDrawCanvas() { if (confirm('내가 그린 그림을 모두 지울까요?')) drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); }
+
+  function downloadMyDrawing() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = bgCanvas.width; tempCanvas.height = bgCanvas.height;
+    const tCtx = tempCanvas.getContext('2d');
+    tCtx.fillStyle = '#ffffff'; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    if (document.getElementById('mergeTplCheck').checked) tCtx.drawImage(bgCanvas, 0, 0);
+    tCtx.drawImage(drawCanvas, 0, 0);
+    const link = document.createElement('a');
+    link.download = 'my_character.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
+  }
+  function saveAndGoStep2() { downloadMyDrawing(); goStep(2); }
+
+  function goStep(num) {
+    document.querySelectorAll('.step-btn').forEach((b, i) => b.classList.toggle('active', i === num - 1));
+    document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
+  }
+
+  let currentUploadedDataUrl = null, currentMediaType = 'video';
+  function previewUploadedMedia(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 6 * 1024 * 1024) return alert('6MB 이하의 파일을 올려주세요.');
+    const reader = new FileReader();
+    reader.onload = evt => {
+      currentUploadedDataUrl = evt.target.result;
+      currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
+      document.getElementById('mediaPreviewBox').innerHTML = currentMediaType === 'video'
+        ? `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline></video>`
+        : `<img src="${currentUploadedDataUrl}" alt="캐릭터">`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function changeRoom() {
+    currentRoom = (document.getElementById('roomInput').value.trim() || '2학년1반').replace(/[.#$[\]]/g, '');
+    localStorage.setItem('saved_room_name', currentRoom);
+    document.getElementById('roomTitleDisplay').innerText = currentRoom;
+    listenToBoard();
+  }
+
+  function submitCharacter() {
+    const charName = document.getElementById('charName').value.trim();
+    const creatorName = document.getElementById('creatorName').value.trim();
+    const charStory = document.getElementById('charStory').value.trim();
+    if (!currentUploadedDataUrl) return alert('움직이는 캐릭터(MP4) 파일을 먼저 선택해 주세요!');
+    if (!charName || !creatorName || !charStory) return alert('빈칸을 모두 적어주세요!');
+
+    const newEntry = { id: 'char_' + Date.now(), charName, creatorName, charStory, mediaData: currentUploadedDataUrl, mediaType: currentMediaType, createdAt: new Date().toLocaleString('ko-KR') };
+    if (isFirebaseConnected && db) {
+      db.ref(`rooms/${currentRoom}/characters/${newEntry.id}`).set(newEntry)
+        .then(() => { alert('우리반 게시판에 등록되었습니다!'); resetStep3Form(); })
+        .catch(err => alert('업로드 오류: ' + err.message));
+    } else {
+      const localList = getLocalBoard();
+      localList.unshift(newEntry);
+      localStorage.setItem(`board_${currentRoom}`, JSON.stringify(localList));
+      renderGallery(localList);
+      alert('등록되었습니다! (로컬 체험 모드)');
+      resetStep3Form();
+    }
+  }
+
+  function resetStep3Form() {
+    document.getElementById('charName').value = ''; document.getElementById('creatorName').value = ''; document.getElementById('charStory').value = '';
+    currentUploadedDataUrl = null;
+    document.getElementById('mediaPreviewBox').innerHTML = `<span style="color:#94a3b8; font-size:14px;">파일이 등록되었습니다!</span>`;
+  }
+
+  let currentBoardData = [];
+  function getLocalBoard() { const raw = localStorage.getItem(`board_${currentRoom}`); return raw ? JSON.parse(raw) : []; }
+
+  function listenToBoard() {
+    if (isFirebaseConnected && db) {
+      db.ref(`rooms/${currentRoom}/characters`).off();
+      db.ref(`rooms/${currentRoom}/characters`).on('value', snapshot => {
+        const data = snapshot.val();
+        currentBoardData = data ? Object.values(data).sort((a, b) => b.id.localeCompare(a.id)) : [];
+        renderGallery(currentBoardData);
+      });
+    } else {
+      currentBoardData = getLocalBoard();
+      renderGallery(currentBoardData);
+    }
+  }
+
+  function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+  function renderGallery(list) {
+    const grid = document.getElementById('galleryGrid');
+    if (!list || list.length === 0) {
+      grid.innerHTML = `<p style="color:#64748b; grid-column: 1/-1; text-align:center; padding: 30px;">아직 등록된 캐릭터가 없습니다. 첫 번째 창조주가 되어보세요!</p>`;
+      return;
+    }
+    grid.innerHTML = list.map(item => `
+      <div class="char-card">
+        <div class="media-box">
+          ${item.mediaType === 'video' ? `<video src="${item.mediaData}" autoplay loop muted playsinline></video>` : `<img src="${item.mediaData}" alt="${escapeHtml(item.charName)}">`}
+        </div>
+        <div class="info">
+          <h4 class="char-name">${escapeHtml(item.charName)}</h4>
+          <div class="creator">창조주: ${escapeHtml(item.creatorName)}</div>
+          <div class="story">${escapeHtml(item.charStory)}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function exportToTeacherPC() {
+    if (!currentBoardData || currentBoardData.length === 0) return alert('저장할 작품이 없습니다.');
+    const blob = new Blob([JSON.stringify(currentBoardData, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.download = `${currentRoom}_캐릭터게시판_백업_${new Date().toISOString().slice(0,10)}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  }
+
+  function importBackupFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const imported = JSON.parse(evt.target.result);
+        if (Array.isArray(imported)) { currentBoardData = imported; renderGallery(imported); alert('백업 파일을 불러왔습니다!'); }
+      } catch (err) { alert('올바른 백업 파일이 아닙니다.'); }
+    };
+    reader.readAsText(file);
+  }
+
+  listenToBoard();
+</script>
+</body>
+</html>
