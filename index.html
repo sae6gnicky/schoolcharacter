@@ -5,41 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>교실 속 사물 캐릭터 메이커</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <style>
-    :root { --primary: #4A90E2; --secondary: #FF9F43; --success: #10B981; --bg: #F0F4F8; --card: #FFFFFF; --text: #2C3E50; }
+    :root { --primary: #4A90E2; --secondary: #FF9F43; --success: #10B981; --purple: #8B5CF6; --bg: #F0F4F8; --card: #FFFFFF; --text: #2C3E50; }
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
     body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
     .container { max-width: 1150px; margin: 0 auto; background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
     header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 24px; color: var(--primary); }
 
-    /* 상단 게시판 링크 및 QR 설정 박스 */
     .board-config-box { background: #eef5ff; border: 2px solid #bcd6f7; border-radius: 16px; padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
     .board-config-box input { flex: 1; min-width: 240px; padding: 10px 14px; border: 1px solid #93c5fd; border-radius: 10px; font-size: 14px; user-select: text; -webkit-user-select: text; }
     .qr-popup-area { display: flex; align-items: center; gap: 12px; background: white; padding: 8px 15px; border-radius: 12px; border: 2px solid #93c5fd; cursor: pointer; transition: 0.2s; }
     .qr-popup-area:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
 
-    /* 공통 모달(QR 확대 등) */
     .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
     .modal-overlay.show { display: flex; }
     .modal-box { background: white; border-radius: 24px; padding: 30px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
-    /* 단계 탭 */
     .steps { display: flex; gap: 10px; margin-bottom: 25px; }
     .step-btn { flex: 1; padding: 14px; border: none; background: #e2e8f0; color: #64748b; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.2s; }
     .step-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3); }
     .step-section { display: none; }
     .step-section.active { display: block; }
 
-    /* 1단계 레이아웃 */
-    .step1-grid { display: grid; grid-template-columns: 220px 1fr 280px; gap: 20px; align-items: start; }
+    .step1-grid { display: grid; grid-template-columns: 230px 1fr 280px; gap: 20px; align-items: start; }
     .panel { background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid #e2e8f0; }
     .panel h3 { margin-top: 0; font-size: 16px; margin-bottom: 12px; color: #334155; }
     .template-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .tpl-btn { padding: 10px 5px; border: 2px solid #cbd5e1; border-radius: 10px; background: white; cursor: pointer; font-weight: bold; font-size: 13px; }
     .tpl-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
 
-    /* 캔버스 및 줌/팝업 영역 */
     .canvas-area { display: flex; flex-direction: column; align-items: center; }
     .canvas-area.fullscreen-mode { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 8000; justify-content: center; padding: 20px; }
     .canvas-area.fullscreen-mode #canvas-viewport { width: min(76vh, 88vw); height: min(76vh, 88vw); }
@@ -47,8 +43,8 @@
     .zoom-btn { padding: 6px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
     .zoom-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
     
-    #canvas-viewport { position: relative; width: 440px; height: 440px; background: #cbd5e1; border: 3px solid var(--primary); border-radius: 16px; overflow: hidden; touch-action: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    #canvas-stage { position: absolute; top: 0; left: 0; width: 440px; height: 440px; transform-origin: 0 0; background: #ffffff; }
+    #canvas-viewport { position: relative; width: 440px; height: 440px; background: #e2e8f0; border: 3px solid var(--primary); border-radius: 16px; overflow: hidden; touch-action: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    #canvas-stage { position: absolute; top: 0; left: 0; width: 440px; height: 440px; transform-origin: 0 0; background: #ffffff; box-shadow: 0 0 10px rgba(0,0,0,0.08); }
     #canvas-stage canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
 
     .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; align-items: center; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
@@ -64,17 +60,17 @@
     .expr-btn:hover, .expr-btn.active { background: #fffbeb; border-color: var(--secondary); }
 
     .btn { padding: 11px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: var(--secondary); color: white; }
     .btn-success { background: var(--success); color: white; }
+    .btn-purple { background: var(--purple); color: white; }
     .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
     .next-bar { margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #eef2f5; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-    /* 2단계 레이아웃 */
     .step2-box { max-width: 680px; margin: 0 auto; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed var(--primary); }
     .step2-box ol { line-height: 1.9; font-size: 16px; padding-left: 20px; }
 
-    /* 3단계 레이아웃 */
     .step3-form { display: grid; grid-template-columns: 350px 1fr; gap: 25px; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
     .video-preview-box { width: 100%; height: 300px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
     .video-preview-box video, .video-preview-box img { width: 100%; height: 100%; object-fit: contain; }
@@ -83,10 +79,12 @@
     .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; font-family: inherit; user-select: text; -webkit-user-select: text; }
     .form-group textarea { height: 110px; resize: vertical; }
 
-    /* 3단계 완성 카드 미리보기 & 공유 박스 */
     .result-card-box { background: #f0fdf4; border: 2px solid var(--success); border-radius: 16px; padding: 25px; text-align: center; display: none; }
     .result-card-box.show { display: block; }
-    .preview-card-ui { max-width: 650px; margin: 15px auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: grid; grid-template-columns: 240px 1fr; gap: 20px; text-align: left; align-items: center; border: 2px solid #e2e8f0; }
+    .preview-card-ui { max-width: 680px; margin: 15px auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: grid; grid-template-columns: 240px 1fr; gap: 20px; text-align: left; align-items: center; border: 3px solid var(--primary); }
+    .url-result-bar { max-width: 680px; margin: 15px auto; background: #fff; border: 2px solid var(--purple); border-radius: 12px; padding: 12px; display: none; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .url-result-bar.show { display: flex; }
+    .url-result-bar input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; font-weight: bold; color: #6d28d9; background: #f8fafc; user-select: text; -webkit-user-select: text; }
     @media (max-width: 950px) { .step1-grid, .step3-form, .preview-card-ui { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -96,11 +94,11 @@
 <div id="qrModal" class="modal-overlay" onclick="closeQRModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <h2 style="margin-top:0; color:var(--primary);">📱 우리반 게시판 QR코드</h2>
-    <p style="font-size:14px; color:#64748b; margin-top:0;">태블릿 카메라로 스캔하면 게시판으로 바로 이동합니다!</p>
+    <p style="font-size:14px; color:#64748b; margin-top:0;">태블릿 카메라로 스캔하면 선생님이 설정한 게시판으로 이동합니다!</p>
     <div style="background:#f8fafc; padding:20px; border-radius:16px; display:inline-block; border:2px dashed #93c5fd;">
       <canvas id="qrLargeCanvas" width="300" height="300"></canvas>
     </div>
-    <div id="qrModalUrlText" style="font-size:12px; color:#94a3b8; margin:12px 0; word-break:break-all;"></div>
+    <div id="qrModalUrlText" style="font-size:13px; color:#2563eb; font-weight:bold; margin:12px 0; word-break:break-all;"></div>
     <button class="btn btn-primary" style="width:100%;" onclick="closeQRModal()">닫기 ✖</button>
   </div>
 </div>
@@ -111,14 +109,13 @@
     <div style="font-size:13px; color:#64748b; font-weight:bold;">우리 교실 창작 활동</div>
   </header>
 
-  <!-- 상단 게시판 링크 입력 및 클릭 시 커지는 QR코드 -->
   <div class="board-config-box">
     <div>
-      <strong>🏫 선생님 패들렛 / 하이클래스 게시판 링크 입력</strong>
-      <div style="font-size:12px; color:#64748b; margin-top:2px;">오른쪽 <strong>QR코드를 클릭</strong>하면 칠판에 띄우기 좋게 <strong>크게 팝업</strong>됩니다!</div>
+      <strong>🏫 선생님 게시판(패들렛 / 하이클래스 등) 주소 입력</strong>
+      <div style="font-size:12px; color:#64748b; margin-top:2px;">여기에 입력한 주소로 <strong>QR코드</strong>와 3단계의 <strong>[우리반 게시판 열기]</strong> 버튼이 연결됩니다!</div>
     </div>
     <div style="display:flex; gap:10px; flex:1; justify-content:flex-end; flex-wrap:wrap; align-items:center;">
-      <input type="text" id="padletUrlInput" placeholder="https://padlet.com/... 또는 게시판 주소 입력" oninput="generateQRCode()">
+      <input type="text" id="padletUrlInput" placeholder="예: https://padlet.com/... 또는 하이클래스 주소" oninput="generateQRCode()">
       <div class="qr-popup-area" onclick="openQRModal()" title="클릭하면 크게 보입니다">
         <canvas id="qrCanvas" width="56" height="56"></canvas>
         <span style="font-size:13px; font-weight:bold; color:#2563eb;">🔍 QR 크게 보기<br><small style="font-weight:normal; color:#64748b;">(클릭하세요)</small></span>
@@ -137,7 +134,7 @@
     <div class="step1-grid">
       <div class="panel">
         <h3>1. 밑바탕 도안 고르기</h3>
-        <p style="font-size:12px; color:#64748b; margin-top:0;">도안을 깔고 그 위에 그리거나, 종이에 직접 그린 뒤 카메라로 찍어도 좋아요!</p>
+        <p style="font-size:12px; color:#64748b; margin-top:0;">팔다리를 그릴 수 있게 도안이 알맞은 크기로 들어갑니다.</p>
         <div class="template-list">
           <button class="tpl-btn active" onclick="loadTemplate(0, this)">빈 종이</button>
           <button class="tpl-btn" onclick="loadTemplate(1, this)">도안 1</button>
@@ -147,21 +144,30 @@
           <button class="tpl-btn" onclick="loadTemplate(5, this)">도안 5</button>
           <button class="tpl-btn" onclick="loadTemplate(6, this)">도안 6</button>
         </div>
+
         <div style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:bold; margin-bottom:5px; color:#2563eb;">
+            <span>📏 도안 크기 (팔다리 여백)</span>
+            <span id="tplSizeLabel">75%</span>
+          </div>
+          <input type="range" id="tplScaleRange" min="40" max="100" value="75" style="width:100%;" oninput="updateTemplateScale(this.value)">
+          <div style="font-size:11px; color:#64748b; margin-top:3px;">💡 숫자를 줄이면 사물이 작아져서 주변에 팔다리를 그리기 편해요!</div>
+        </div>
+
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
           <label style="font-size:13px; font-weight:bold; cursor:pointer;">
             <input type="checkbox" id="mergeTplCheck" checked> 저장할 때 밑바탕 도안도 함께 합치기
           </label>
         </div>
       </div>
 
-      <!-- 가운데: 줌 & 팝업 지원 캔버스 -->
       <div class="canvas-area" id="canvasAreaBox">
         <div class="zoom-bar">
-          <span style="font-size:12px; font-weight:bold; color:#475569;">💡 두 손가락으로 확대/이동 가능</span>
-          <button class="zoom-btn" onclick="adjustZoom(1.25)">➕ 확대</button>
-          <button class="zoom-btn" onclick="adjustZoom(0.8)">➖ 축소</button>
+          <span style="font-size:12px; font-weight:bold; color:#475569;">💡 두 손가락 축소/확대 가능</span>
+          <button class="zoom-btn" onclick="adjustZoom(1.2)">➕ 확대</button>
+          <button class="zoom-btn" onclick="adjustZoom(0.8)">➖ 축소(80%)</button>
           <button class="zoom-btn" id="zoomResetBtn" onclick="resetZoom()">100%</button>
-          <button class="zoom-btn" id="panModeBtn" onclick="togglePanMode()">✋ 화면 이동모드</button>
+          <button class="zoom-btn" id="panModeBtn" onclick="togglePanMode()">✋ 화면 이동</button>
           <button class="zoom-btn" id="fullscreenBtn" style="background:#eff6ff; border-color:#93c5fd; color:#2563eb;" onclick="toggleFullscreenDraw()">🔍 크게 그리기 팝업</button>
         </div>
 
@@ -199,7 +205,6 @@
       </div>
     </div>
 
-    <!-- 1단계 하단: 화면 그림 다운받기 & 카메라로 손그림 찍어 저장하기 2종 버튼 -->
     <div class="next-bar">
       <button class="btn btn-secondary" onclick="downloadMyDrawing()">💾 1단계 그림 다운받기 (PNG)</button>
       <label class="btn btn-success" style="margin:0;">
@@ -252,7 +257,6 @@
         </label>
       </div>
 
-      <!-- 요청하신 순서: 1. 캐릭터 이름 -> 2. 캐릭터 이야기 -> 3. 창조주 이름 -->
       <div>
         <h3 style="margin-top:0; color:var(--primary);">📝 내 캐릭터를 소개합니다</h3>
         <div class="form-group">
@@ -267,13 +271,13 @@
           <label>3. 창조주 이름 (학생 이름 또는 번호)</label>
           <input type="text" id="creatorName" placeholder="예: 재미니">
         </div>
-        <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="createStudentCard()">✨ 캐릭터 소개 카드 완성하기</button>
+        <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="createStudentCard()">✨ 움직이는 캐릭터 소개 카드 만들기</button>
       </div>
     </div>
 
-    <!-- 완성된 전체 카드 미리보기 및 패들렛/하이클래스 업로드 도구 -->
+    <!-- 완성된 전체 카드 미리보기 & 3가지 형태(GIF / HTML / URL) 저장 박스 -->
     <div id="resultCardBox" class="result-card-box">
-      <h3 style="color:var(--success); margin-top:0;">🎉 나만의 캐릭터 소개 카드가 완성되었어요!</h3>
+      <h3 style="color:var(--success); margin-top:0;">🎉 나만의 움직이는 캐릭터 소개 카드가 완성되었어요!</h3>
       
       <div class="preview-card-ui">
         <div id="cardMediaSlot" style="width:100%; height:220px; background:#f8fafc; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center;"></div>
@@ -284,24 +288,33 @@
         </div>
       </div>
 
+      <!-- 생성된 공유 URL 표시창 -->
+      <div id="urlResultBar" class="url-result-bar">
+        <span style="font-size:13px; font-weight:bold; color:var(--purple);">🔗 공유 URL:</span>
+        <input type="text" id="generatedShareUrl" readonly onclick="this.select()">
+        <button class="btn btn-purple" style="padding:8px 14px; font-size:13px;" onclick="copyGeneratedUrl()">URL 복사</button>
+        <a id="testOpenUrlBtn" href="#" target="_blank" class="btn btn-outline" style="padding:8px 14px; font-size:13px; text-decoration:none;">새 창으로 열기</a>
+      </div>
+
       <p style="font-size:14px; line-height:1.6; color:#334155; margin-bottom:15px;">
-        💡 <strong>우리반 게시판(패들렛/하이클래스)에 통째로 올리는 방법:</strong><br>
-        • <strong>방법 A (움직이는 전체 카드 파일):</strong> <strong>[📦 움직이는 소개카드(HTML) 다운받기]</strong> 또는 <strong>[🖼️ 소개카드 이미지(PNG) 저장]</strong> 후 패들렛에 파일을 올리세요!<br>
-        • <strong>방법 B (글 복사 + 영상 첨부):</strong> <strong>[📋 소개글 복사하기]</strong>를 눌러 패들렛 본문에 붙여넣고, 2단계의 MP4 영상 파일을 첨부하세요!
+        💡 <strong>원하는 형태로 저장하거나 우리반 게시판에 공유해 보세요!</strong><br>
+        • <strong>[🔗 URL로 저장(링크 복사)]</strong>를 눌러 게시판에 올리면 친구들이 들어와 구경할 수 있고, 선생님은 그 주소 안에서 <strong>GIF나 HTML로 바로 다운</strong>받을 수 있어요!
       </p>
 
+      <!-- 요청하신 3가지 저장 버튼 (GIF로 저장 / HTML로 저장 / URL로 저장) + 소개글 복사 & 게시판 이동 -->
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-secondary" onclick="downloadCompleteHtmlCard()">📦 움직이는 소개카드(HTML) 다운받기</button>
-        <button class="btn btn-outline" onclick="downloadCardAsImage()">🖼️ 소개카드 이미지(PNG) 저장</button>
-        <button class="btn btn-success" onclick="copyCardContent()">📋 소개글 복사하기</button>
-        <a id="goToBoardBtn" href="https://padlet.com" target="_blank" class="btn btn-primary" style="text-decoration:none;">🚀 우리반 게시판 열기</a>
+        <button class="btn btn-secondary" id="saveGifBtn" onclick="downloadCardAsAnimatedGif()">🎞️ GIF로 저장 (움직이는 카드)</button>
+        <button class="btn btn-outline" onclick="downloadCompleteHtmlCard()">📦 HTML로 저장</button>
+        <button class="btn btn-purple" id="makeUrlBtn" onclick="generateLiveCardUrl()">🔗 URL로 저장 (공유 링크 만들기)</button>
+        <button class="btn btn-success" onclick="copyCardContent()">📋 소개글 복사</button>
+        <button class="btn btn-primary" onclick="openTeacherBoard()">🚀 우리반 게시판 열기</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  // 우클릭 및 개발자 도구 단축키 차단 스크립트
+  // 보안: 우클릭 및 개발자 도구 단축키 차단 스크립트
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('dragstart', e => e.preventDefault());
   document.addEventListener('keydown', e => {
@@ -310,28 +323,40 @@
     }
   });
 
-  // 1. QR코드 생성 및 클릭 시 대형 팝업
+  // 1. 교사 입력 사이트 주소 정규화 및 QR코드 생성
   const qrSmall = new QRious({ element: document.getElementById('qrCanvas'), size: 56, value: 'https://padlet.com' });
   const qrLarge = new QRious({ element: document.getElementById('qrLargeCanvas'), size: 300, value: 'https://padlet.com' });
 
+  function getNormalizedTeacherUrl() {
+    let raw = document.getElementById('padletUrlInput').value.trim();
+    if (!raw) return '';
+    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    return raw;
+  }
+
   function generateQRCode() {
-    const url = document.getElementById('padletUrlInput').value.trim() || 'https://padlet.com';
-    qrSmall.value = url;
-    qrLarge.value = url;
-    document.getElementById('goToBoardBtn').href = url;
-    document.getElementById('qrModalUrlText').innerText = url;
-    localStorage.setItem('saved_board_url', url);
+    const validUrl = getNormalizedTeacherUrl() || 'https://padlet.com';
+    qrSmall.value = validUrl;
+    qrLarge.value = validUrl;
+    document.getElementById('qrModalUrlText').innerText = validUrl;
+    localStorage.setItem('saved_board_url', document.getElementById('padletUrlInput').value.trim());
   }
 
-  function openQRModal() {
-    generateQRCode();
-    document.getElementById('qrModal').classList.add('show');
-  }
-  function closeQRModal() {
-    document.getElementById('qrModal').classList.remove('show');
+  function openTeacherBoard() {
+    const targetUrl = getNormalizedTeacherUrl();
+    if (!targetUrl) {
+      alert('선생님께서 아직 상단에 우리반 게시판 주소를 입력하지 않으셨어요!\n화면 맨 위 입력칸에 게시판 주소를 먼저 넣어주세요.');
+      document.getElementById('padletUrlInput').focus();
+      return;
+    }
+    window.open(targetUrl, '_blank');
   }
 
-  const savedUrl = localStorage.getItem('saved_board_url');
+  function openQRModal() { generateQRCode(); document.getElementById('qrModal').classList.add('show'); }
+  function closeQRModal() { document.getElementById('qrModal').classList.remove('show'); }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const savedUrl = urlParams.get('board') || localStorage.getItem('saved_board_url');
   if (savedUrl) {
     document.getElementById('padletUrlInput').value = savedUrl;
     generateQRCode();
@@ -361,13 +386,14 @@
     exprGrid.appendChild(btn);
   });
 
-  // 3. 1단계 캔버스, 정사각형 크롭, 핀치 줌(손가락 확대) & 팝업 모드
+  // 3. 1단계: 도안 크기 조절(기본 75%) & 캔버스 축소/확대(50%~400%)
   const viewport = document.getElementById('canvas-viewport');
   const stage = document.getElementById('canvas-stage');
   const bgCanvas = document.getElementById('bgCanvas'), drawCanvas = document.getElementById('drawCanvas');
   const bgCtx = bgCanvas.getContext('2d'), drawCtx = drawCanvas.getContext('2d');
 
   let isDrawing = false, currentColor = '#000000', isEraser = false;
+  let currentTemplateImg = null, templateScale = 0.75;
   let zoomScale = 1, panX = 0, panY = 0;
   let isPanMode = false, isDraggingPan = false, panStartX = 0, panStartY = 0;
   let pinchStartDist = 0, pinchStartScale = 1;
@@ -378,47 +404,52 @@
   }
   fillWhiteBackground();
 
-  function drawCroppedSquareImage(ctx, img, size) {
-    const ratio = Math.max(size / img.width, size / img.height);
-    const shiftX = (size - img.width * ratio) / 2;
-    const shiftY = (size - img.height * ratio) / 2;
-    ctx.drawImage(img, 0, 0, img.width, img.height, shiftX, shiftY, img.width * ratio, img.height * ratio);
+  function renderBackgroundTemplate() {
+    fillWhiteBackground();
+    if (!currentTemplateImg) return;
+    const canvasSize = bgCanvas.width;
+    const targetBoxSize = canvasSize * templateScale;
+    const offset = (canvasSize - targetBoxSize) / 2;
+    const minSide = Math.min(currentTemplateImg.width, currentTemplateImg.height);
+    const sx = (currentTemplateImg.width - minSide) / 2;
+    const sy = (currentTemplateImg.height - minSide) / 2;
+    bgCtx.drawImage(currentTemplateImg, sx, sy, minSide, minSide, offset, offset, targetBoxSize, targetBoxSize);
+  }
+
+  function updateTemplateScale(val) {
+    document.getElementById('tplSizeLabel').innerText = val + '%';
+    templateScale = Number(val) / 100;
+    renderBackgroundTemplate();
   }
 
   function loadTemplate(num, btnEl) {
     document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
-    fillWhiteBackground();
-    if (num === 0) return;
+    if (num === 0) { currentTemplateImg = null; fillWhiteBackground(); return; }
     const numStr = String(num).padStart(2, '0');
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = `https://raw.githubusercontent.com/sae6gnicky/schoolcharacter/main/${numStr}.png`;
-    img.onload = () => drawCroppedSquareImage(bgCtx, img, bgCanvas.width);
+    img.onload = () => { currentTemplateImg = img; renderBackgroundTemplate(); };
   }
 
   function updateStageTransform() {
-    if (zoomScale <= 1) { zoomScale = 1; panX = 0; panY = 0; }
+    zoomScale = Math.min(4, Math.max(0.5, zoomScale));
+    if (zoomScale < 1 && !isDraggingPan) {
+      panX = (viewport.clientWidth - bgCanvas.width * zoomScale) / 2;
+      panY = (viewport.clientHeight - bgCanvas.height * zoomScale) / 2;
+    }
     stage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
     document.getElementById('zoomResetBtn').innerText = `${Math.round(zoomScale * 100)}%`;
   }
 
-  function adjustZoom(factor) {
-    zoomScale = Math.min(4, Math.max(1, zoomScale * factor));
-    updateStageTransform();
-  }
-
-  function resetZoom() {
-    zoomScale = 1; panX = 0; panY = 0;
-    updateStageTransform();
-  }
-
+  function adjustZoom(factor) { zoomScale = zoomScale * factor; updateStageTransform(); }
+  function resetZoom() { zoomScale = 1; panX = 0; panY = 0; updateStageTransform(); }
   function togglePanMode() {
     isPanMode = !isPanMode;
     document.getElementById('panModeBtn').classList.toggle('active', isPanMode);
     drawCanvas.style.cursor = isPanMode ? 'grab' : 'crosshair';
   }
-
   function toggleFullscreenDraw() {
     const area = document.getElementById('canvasAreaBox');
     const btn = document.getElementById('fullscreenBtn');
@@ -427,22 +458,11 @@
     resetZoom();
   }
 
-  // 확대 상태에서도 정확한 캔버스 좌표를 계산
   function getPos(clientX, clientY) {
     const rect = drawCanvas.getBoundingClientRect();
-    return {
-      x: (clientX - rect.left) * (drawCanvas.width / rect.width),
-      y: (clientY - rect.top) * (drawCanvas.height / rect.height)
-    };
+    return { x: (clientX - rect.left) * (drawCanvas.width / rect.width), y: (clientY - rect.top) * (drawCanvas.height / rect.height) };
   }
-
-  function beginStroke(x, y) {
-    isDrawing = true;
-    const p = getPos(x, y);
-    drawCtx.beginPath();
-    drawCtx.moveTo(p.x, p.y);
-  }
-
+  function beginStroke(x, y) { isDrawing = true; const p = getPos(x, y); drawCtx.beginPath(); drawCtx.moveTo(p.x, p.y); }
   function moveStroke(x, y) {
     if (!isDrawing) return;
     const p = getPos(x, y);
@@ -450,81 +470,48 @@
     drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
     drawCtx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
     if (!isEraser) drawCtx.strokeStyle = currentColor;
-    drawCtx.lineTo(p.x, p.y);
-    drawCtx.stroke();
+    drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
   }
 
-  // 마우스 이벤트
   drawCanvas.addEventListener('mousedown', e => {
     e.preventDefault();
-    if (isPanMode) {
-      isDraggingPan = true;
-      panStartX = e.clientX - panX;
-      panStartY = e.clientY - panY;
-      return;
-    }
+    if (isPanMode) { isDraggingPan = true; panStartX = e.clientX - panX; panStartY = e.clientY - panY; return; }
     beginStroke(e.clientX, e.clientY);
   });
   window.addEventListener('mousemove', e => {
-    if (isDraggingPan) {
-      panX = e.clientX - panStartX;
-      panY = e.clientY - panStartY;
-      updateStageTransform();
-      return;
-    }
+    if (isDraggingPan) { panX = e.clientX - panStartX; panY = e.clientY - panStartY; updateStageTransform(); return; }
     moveStroke(e.clientX, e.clientY);
   });
   window.addEventListener('mouseup', () => { isDrawing = false; isDraggingPan = false; });
 
-  // 터치 이벤트 (1손가락: 그리기 또는 이동, 2손가락: 핀치 줌 확대/이동)
   drawCanvas.addEventListener('touchstart', e => {
     e.preventDefault();
     if (e.touches.length >= 2) {
       isDrawing = false;
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      pinchStartDist = Math.hypot(dx, dy);
+      pinchStartDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       pinchStartScale = zoomScale;
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      panStartX = midX - panX;
-      panStartY = midY - panY;
+      panStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - panX;
+      panStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - panY;
       return;
     }
     const t = e.touches[0];
-    if (isPanMode) {
-      isDraggingPan = true;
-      panStartX = t.clientX - panX;
-      panStartY = t.clientY - panY;
-    } else {
-      beginStroke(t.clientX, t.clientY);
-    }
+    if (isPanMode) { isDraggingPan = true; panStartX = t.clientX - panX; panStartY = t.clientY - panY; }
+    else beginStroke(t.clientX, t.clientY);
   }, { passive: false });
 
   drawCanvas.addEventListener('touchmove', e => {
     e.preventDefault();
     if (e.touches.length >= 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      if (pinchStartDist > 0) {
-        zoomScale = Math.min(4, Math.max(1, pinchStartScale * (dist / pinchStartDist)));
-      }
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      panX = midX - panStartX;
-      panY = midY - panStartY;
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (pinchStartDist > 0) zoomScale = Math.min(4, Math.max(0.5, pinchStartScale * (dist / pinchStartDist)));
+      panX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - panStartX;
+      panY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - panStartY;
       updateStageTransform();
       return;
     }
     const t = e.touches[0];
-    if (isDraggingPan) {
-      panX = t.clientX - panStartX;
-      panY = t.clientY - panStartY;
-      updateStageTransform();
-    } else {
-      moveStroke(t.clientX, t.clientY);
-    }
+    if (isDraggingPan) { panX = t.clientX - panStartX; panY = t.clientY - panStartY; updateStageTransform(); }
+    else moveStroke(t.clientX, t.clientY);
   }, { passive: false });
 
   window.addEventListener('touchend', () => { isDrawing = false; isDraggingPan = false; pinchStartDist = 0; });
@@ -537,16 +524,9 @@
     document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
     if (dotEl) dotEl.classList.add('active');
   }
-  function setEraser() {
-    isEraser = true; isPanMode = false;
-    document.getElementById('panModeBtn').classList.remove('active');
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-  }
-  function clearDrawCanvas() {
-    if (confirm('내가 그린 그림을 모두 지울까요?')) drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  }
+  function setEraser() { isEraser = true; isPanMode = false; document.getElementById('panModeBtn').classList.remove('active'); document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); }
+  function clearDrawCanvas() { if (confirm('내가 그린 그림을 모두 지울까요?')) drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); }
 
-  // 1단계 그림 다운로드
   function downloadMyDrawing() {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = bgCanvas.width; tempCanvas.height = bgCanvas.height;
@@ -558,7 +538,6 @@
     link.download = 'my_character.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
   }
 
-  // 카메라로 찍어서 그림 바로 저장 (정사각형 크롭 후 캔버스 반영 및 즉시 다운로드)
   function handleCameraPhotoSave(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -566,12 +545,12 @@
     reader.onload = evt => {
       const img = new Image();
       img.onload = () => {
-        fillWhiteBackground();
+        currentTemplateImg = img;
         drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-        drawCroppedSquareImage(bgCtx, img, bgCanvas.width);
+        renderBackgroundTemplate();
         document.getElementById('mergeTplCheck').checked = true;
         downloadMyDrawing();
-        alert('📸 촬영한 손그림이 정사각형으로 저장되었습니다! 이제 2단계에서 바로 올려보세요.');
+        alert('📸 촬영한 손그림이 저장되었습니다! 이제 2단계에서 바로 올려보세요.');
         goStep(2);
       };
       img.src = evt.target.result;
@@ -584,14 +563,21 @@
     document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
   }
 
-  // 4. 3단계 미디어 업로드, 소개글 순서 및 전체 카드 공유
+  // 4. 3단계: GIF 저장 / HTML 저장 / URL 저장 (그리고 URL 페이지 내부에서도 GIF/HTML 저장 버튼 제공)
   let currentUploadedDataUrl = null;
   let currentMediaType = 'video';
+  let gifWorkerBlobUrl = null;
+
+  // 크로스 도메인 제약 없이 브라우저에서 즉시 GIF를 생성하기 위한 워커 로드
+  fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
+    .then(r => r.blob())
+    .then(b => { gifWorkerBlobUrl = URL.createObjectURL(b); })
+    .catch(() => {});
 
   function previewUploadedMedia(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (10MB 이하로 올려주세요).');
+    if (file.size > 15 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (15MB 이하로 올려주세요).');
     currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
     const reader = new FileReader();
     reader.onload = evt => {
@@ -611,97 +597,276 @@
     if (!charName || !charStory || !creatorName) return alert('1. 캐릭터 이름, 2. 캐릭터 이야기, 3. 창조주 이름을 모두 적어주세요!');
 
     document.getElementById('cardMediaSlot').innerHTML = currentMediaType === 'video'
-      ? `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
-      : `<img src="${currentUploadedDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
-    document.getElementById('cardTitleSlot').innerText = charName;
-    document.getElementById('cardStorySlot').innerText = charStory;
-    document.getElementById('cardCreatorSlot').innerText = `창조주: ${creatorName}`;
+      ? `<video id="cardPreviewVideo" src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
+      : `<img id="cardPreviewImg" src="${currentUploadedDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
+    document.getElementById('cardTitleSlot').innerText = `1. 캐릭터 이름: ${charName}`;
+    document.getElementById('cardStorySlot').innerText = `2. 캐릭터 이야기:\n${charStory}`;
+    document.getElementById('cardCreatorSlot').innerText = `3. 창조주: ${creatorName}`;
 
     document.getElementById('resultCardBox').classList.add('show');
     document.getElementById('resultCardBox').scrollIntoView({ behavior: 'smooth' });
   }
 
-  // 요청하신 서식: 캐릭터 이름 -> 캐릭터 이야기 -> (한 줄 띄우고) -> 창조주 이름
   function copyCardContent() {
     const charName = document.getElementById('charName').value.trim();
     const charStory = document.getElementById('charStory').value.trim();
     const creatorName = document.getElementById('creatorName').value.trim();
-    
     const textToCopy = `1. 캐릭터 이름: ${charName}\n2. 캐릭터 이야기: ${charStory}\n\n3. 창조주: ${creatorName}`;
-    
     navigator.clipboard.writeText(textToCopy).then(() => {
-      alert('📋 소개글이 복사되었습니다!\n패들렛에 붙여넣기(Ctrl+V) 하세요.');
+      alert('📋 소개글이 복사되었습니다!\n게시판에 붙여넣기(Ctrl+V) 하세요.');
     });
+  }
+
+  // 카드 1프레임(왼쪽 캐릭터 영상 + 오른쪽 소개글)을 캔버스에 그리는 공통 함수
+  function drawCardFrameToCanvas(ctx, width, height, mediaEl, charName, charStory, creatorName) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = '#4A90E2';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, width - 8, height - 8);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(24, 24, 330, 352);
+    if (mediaEl) {
+      const mw = mediaEl.videoWidth || mediaEl.naturalWidth || 300;
+      const mh = mediaEl.videoHeight || mediaEl.naturalHeight || 300;
+      const scale = Math.min(310 / mw, 330 / mh);
+      const dw = mw * scale, dh = mh * scale;
+      ctx.drawImage(mediaEl, 24 + (330 - dw) / 2, 24 + (352 - dh) / 2, dw, dh);
+    }
+
+    ctx.fillStyle = '#4A90E2';
+    ctx.font = 'bold 24px Malgun Gothic, sans-serif';
+    ctx.fillText(`1. 캐릭터 이름: ${charName}`, 380, 65);
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(380, 85, 355, 225);
+    ctx.fillStyle = '#334155';
+    ctx.font = '18px Malgun Gothic, sans-serif';
+    let y = 118;
+    const lines = (`2. 캐릭터 이야기:\n` + charStory).split('\n');
+    lines.forEach(line => {
+      for (let i = 0; i < line.length; i += 18) {
+        if (y < 295) {
+          ctx.fillText(line.slice(i, i + 18), 395, y);
+          y += 26;
+        }
+      }
+    });
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 20px Malgun Gothic, sans-serif';
+    ctx.fillText(`3. 창조주: ${creatorName}`, 380, 355);
+  }
+
+  // [형태 1] 움직이는 GIF로 카드 전체 저장
+  async function downloadCardAsAnimatedGif() {
+    if (!currentUploadedDataUrl) return;
+    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const charStory = document.getElementById('charStory').value.trim() || '';
+    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const btn = document.getElementById('saveGifBtn');
+    const origText = btn.innerText;
+    btn.disabled = true;
+
+    try {
+      if (!gifWorkerBlobUrl) {
+        const r = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+        gifWorkerBlobUrl = URL.createObjectURL(await r.blob());
+      }
+      const c = document.createElement('canvas');
+      c.width = 760; c.height = 400;
+      const ctx = c.getContext('2d');
+      const gif = new GIF({ workers: 2, quality: 10, width: c.width, height: c.height, workerScript: gifWorkerBlobUrl });
+
+      const videoEl = document.getElementById('cardPreviewVideo') || document.getElementById('uploadedVideoEl');
+      const imgEl = document.getElementById('cardPreviewImg') || document.getElementById('uploadedImgEl');
+
+      if (currentMediaType === 'video' && videoEl) {
+        const duration = Math.min(videoEl.duration || 2.4, 3.0);
+        const totalFrames = 16;
+        const step = duration / totalFrames;
+        videoEl.pause();
+
+        for (let i = 0; i < totalFrames; i++) {
+          btn.innerText = `⏳ GIF 변환 중 (${Math.round(((i + 1) / totalFrames) * 100)}%)...`;
+          videoEl.currentTime = i * step;
+          await new Promise(res => {
+            const h = () => { videoEl.removeEventListener('seeked', h); res(); };
+            videoEl.addEventListener('seeked', h);
+            setTimeout(res, 250);
+          });
+          drawCardFrameToCanvas(ctx, c.width, c.height, videoEl, charName, charStory, creatorName);
+          gif.addFrame(ctx, { copy: true, delay: Math.round(step * 1000) });
+        }
+        videoEl.play();
+      } else {
+        drawCardFrameToCanvas(ctx, c.width, c.height, imgEl, charName, charStory, creatorName);
+        gif.addFrame(ctx, { copy: true, delay: 500 });
+      }
+
+      btn.innerText = '⏳ GIF 파일 생성 마무리 중...';
+      gif.on('finished', blob => {
+        const link = document.createElement('a');
+        link.download = `${charName}_${creatorName}_움직이는카드.gif`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        btn.innerText = origText;
+        btn.disabled = false;
+      });
+      gif.render();
+    } catch (err) {
+      alert('GIF 생성 중 오류가 발생했습니다: ' + err.message);
+      btn.innerText = origText;
+      btn.disabled = false;
+    }
   }
 
   function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-  // 움직이는 캐릭터 영상 + 소개글이 하나로 합쳐진 독립 웹 카드(.html) 다운로드
-  function downloadCompleteHtmlCard() {
-    const charName = document.getElementById('charName').value.trim();
-    const charStory = document.getElementById('charStory').value.trim();
-    const creatorName = document.getElementById('creatorName').value.trim();
-    if (!currentUploadedDataUrl) return;
+  // 독립된 HTML 파일 및 공유 URL 페이지 생성 (내부에 교사용 [GIF로 저장] & [HTML로 저장] 2가지 버튼 내장!)
+  function buildStandaloneCardHtml() {
+    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const charStory = document.getElementById('charStory').value.trim() || '';
+    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+
+    const safeNameJson = JSON.stringify(charName);
+    const safeStoryJson = JSON.stringify(charStory);
+    const safeCreatorJson = JSON.stringify(creatorName);
+    const safeTypeJson = JSON.stringify(currentMediaType);
 
     const mediaTag = currentMediaType === 'video'
-      ? `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; max-height:320px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
-      : `<img src="${currentUploadedDataUrl}" style="width:100%; max-height:320px; object-fit:contain; border-radius:12px; background:#fff;">`;
+      ? `<video id="cardMedia" src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
+      : `<img id="cardMedia" src="${currentUploadedDataUrl}" style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;">`;
 
-    const cardHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><style>body{font-family:'Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:90vh;}.card{max-width:700px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;}.creator{font-weight:bold;color:#64748b;}</style></head><body><div class="card"><div>${mediaTag}</div><div><h1>${escapeHtml(charName)}</h1><div class="story">${escapeHtml(charStory)}</div><div class="creator">창조주: ${escapeHtml(creatorName)}</div></div></div></body></html>`;
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"><\/script><style>body{font-family:'Pretendard','Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:92vh;}.card{max-width:740px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:center;border:3px solid #4A90E2;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;font-size:16px;}.creator{font-weight:bold;color:#64748b;font-size:16px;}.action-bar{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}.btn{padding:12px 22px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);}.btn-gif{background:#FF9F43;}.btn-html{background:#4A90E2;}.btn:disabled{opacity:0.6;cursor:not-allowed;}</style></head><body oncontextmenu="return false"><div class="card"><div style="background:#f8fafc;padding:10px;border-radius:14px;text-align:center;">${mediaTag}</div><div><h1>1. 캐릭터 이름: ${escapeHtml(charName)}</h1><div class="story">2. 캐릭터 이야기:\n${escapeHtml(charStory)}</div><div class="creator">3. 창조주: ${escapeHtml(creatorName)}</div></div></div><div class="action-bar"><button class="btn btn-gif" id="gifBtn" onclick="saveAsGif()">🎞️ GIF로 저장</button><button class="btn btn-html" onclick="saveAsHtml()">📦 HTML로 저장</button></div><script>
+const cName=${safeNameJson}, cStory=${safeStoryJson}, cCreator=${safeCreatorJson}, mType=${safeTypeJson};
+function saveAsHtml(){
+  const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;
+  const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');
+  a.download = cName + '_' + cCreator + '_캐릭터카드.html';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+}
+function drawFrame(ctx, w, h, mEl){
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='#4A90E2'; ctx.lineWidth=8; ctx.strokeRect(4,4,w-8,h-8);
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(24,24,330,352);
+  if(mEl){
+    const mw=mEl.videoWidth||mEl.naturalWidth||300, mh=mEl.videoHeight||mEl.naturalHeight||300;
+    const sc=Math.min(310/mw, 330/mh), dw=mw*sc, dh=mh*sc;
+    ctx.drawImage(mEl, 24+(330-dw)/2, 24+(352-dh)/2, dw, dh);
+  }
+  ctx.fillStyle='#4A90E2'; ctx.font='bold 24px Malgun Gothic, sans-serif';
+  ctx.fillText('1. 캐릭터 이름: '+cName, 380, 65);
+  ctx.fillStyle='#f8fafc'; ctx.fillRect(380,85,355,225);
+  ctx.fillStyle='#334155'; ctx.font='18px Malgun Gothic, sans-serif';
+  let y=118;
+  ('2. 캐릭터 이야기:\\n'+cStory).split('\\n').forEach(line=>{
+    for(let i=0;i<line.length;i+=18){ if(y<295){ ctx.fillText(line.slice(i,i+18), 395, y); y+=26; } }
+  });
+  ctx.fillStyle='#64748b'; ctx.font='bold 20px Malgun Gothic, sans-serif';
+  ctx.fillText('3. 창조주: '+cCreator, 380, 355);
+}
+async function saveAsGif(){
+  const btn=document.getElementById('gifBtn');
+  const orig=btn.innerText; btn.disabled=true;
+  try{
+    const r=await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+    const workerUrl=URL.createObjectURL(await r.blob());
+    const c=document.createElement('canvas'); c.width=760; c.height=400;
+    const ctx=c.getContext('2d');
+    const gif=new GIF({workers:2,quality:10,width:c.width,height:c.height,workerScript:workerUrl});
+    const mEl=document.getElementById('cardMedia');
+    if(mType==='video' && mEl){
+      const dur=Math.min(mEl.duration||2.4, 3.0), frames=16, step=dur/frames;
+      mEl.pause();
+      for(let i=0;i<frames;i++){
+        btn.innerText='⏳ GIF 변환 중 ('+Math.round(((i+1)/frames)*100)+'%)...';
+        mEl.currentTime=i*step;
+        await new Promise(res=>{ const h=()=>{mEl.removeEventListener('seeked',h);res();}; mEl.addEventListener('seeked',h); setTimeout(res,250); });
+        drawFrame(ctx,c.width,c.height,mEl);
+        gif.addFrame(ctx,{copy:true,delay:Math.round(step*1000)});
+      }
+      mEl.play();
+    } else {
+      drawFrame(ctx,c.width,c.height,mEl);
+      gif.addFrame(ctx,{copy:true,delay:500});
+    }
+    btn.innerText='⏳ GIF 파일 마무리 중...';
+    gif.on('finished', blob=>{
+      const a=document.createElement('a');
+      a.download=cName+'_'+cCreator+'_움직이는카드.gif';
+      a.href=URL.createObjectURL(blob); a.click();
+      btn.innerText=orig; btn.disabled=false;
+    });
+    gif.render();
+  }catch(e){ alert('GIF 저장 실패: '+e.message); btn.innerText=orig; btn.disabled=false; }
+}
+<\/script></body></html>`;
+  }
 
+  // [형태 2] HTML 파일로 저장
+  function downloadCompleteHtmlCard() {
+    if (!currentUploadedDataUrl) return;
+    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const cardHtml = buildStandaloneCardHtml();
     const blob = new Blob([cardHtml], { type: 'text/html;charset=utf-8' });
     const link = document.createElement('a');
-    link.download = `${charName}_${creatorName}_캐릭터카드.html`;
+    link.download = `${charName}_${creatorName}_움직이는카드.html`;
     link.href = URL.createObjectURL(blob);
     link.click();
   }
 
-  // 전체 카드를 한 장의 이미지(PNG)로 합쳐서 저장 (패들렛에 바로 이미지로 올라감)
-  function downloadCardAsImage() {
-    const charName = document.getElementById('charName').value.trim();
-    const charStory = document.getElementById('charStory').value.trim();
-    const creatorName = document.getElementById('creatorName').value.trim();
+  // [형태 3] 공유 URL로 저장 (URL 접속 시 내부에 GIF로 저장 / HTML로 저장 버튼 포함)
+  async function generateLiveCardUrl() {
     if (!currentUploadedDataUrl) return;
+    const btn = document.getElementById('makeUrlBtn');
+    const origText = btn.innerText;
+    btn.innerText = '⏳ 공유 URL 생성 중...';
+    btn.disabled = true;
 
-    const c = document.createElement('canvas');
-    c.width = 800; c.height = 450;
-    const ctx = c.getContext('2d');
+    try {
+      const cardHtml = buildStandaloneCardHtml();
+      const blob = new Blob([cardHtml], { type: 'text/html' });
+      const formData = new FormData();
+      formData.append('file', blob, 'character_card.html');
 
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, c.width, c.height);
-    ctx.strokeStyle = '#4A90E2';
-    ctx.lineWidth = 8;
-    ctx.strokeRect(4, 4, c.width - 8, c.height - 8);
+      const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const json = await res.json();
 
-    const mediaEl = document.getElementById('uploadedVideoEl') || document.getElementById('uploadedImgEl');
-    if (mediaEl) {
-      ctx.drawImage(mediaEl, 30, 45, 340, 340);
-    }
+      if (json && json.data && json.data.url) {
+        const directUrl = json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+        const urlBar = document.getElementById('urlResultBar');
+        const urlInput = document.getElementById('generatedShareUrl');
+        urlInput.value = directUrl;
+        document.getElementById('testOpenUrlBtn').href = directUrl;
+        urlBar.classList.add('show');
 
-    ctx.fillStyle = '#4A90E2';
-    ctx.font = 'bold 28px Malgun Gothic, sans-serif';
-    ctx.fillText(`1. 캐릭터 이름: ${charName}`, 400, 85);
-
-    ctx.fillStyle = '#334155';
-    ctx.font = '20px Malgun Gothic, sans-serif';
-    const lines = charStory.split('\n');
-    let y = 140;
-    lines.forEach(line => {
-      for (let i = 0; i < line.length; i += 17) {
-        ctx.fillText(line.slice(i, i + 17), 400, y);
-        y += 30;
+        await navigator.clipboard.writeText(directUrl);
+        alert('🎉 공유 URL이 만들어져 클립보드에 복사되었습니다!\n\n우리반 게시판에 이 URL을 붙여넣으면 친구들이 들어와 구경할 수 있고, 선생님은 그 주소 안에서 [GIF로 저장]이나 [HTML로 저장]을 누르실 수 있습니다!');
+      } else {
+        throw new Error('응답 오류');
       }
+    } catch (e) {
+      alert('학교 네트워크 보안으로 인해 외부 URL 생성이 차단되었습니다.\n대신 [📦 HTML로 저장] 또는 [🎞️ GIF로 저장]을 이용해 게시판에 파일을 올려주세요!');
+    } finally {
+      btn.innerText = origText;
+      btn.disabled = false;
+    }
+  }
+
+  function copyGeneratedUrl() {
+    const val = document.getElementById('generatedShareUrl').value;
+    if (!val) return;
+    navigator.clipboard.writeText(val).then(() => {
+      alert('🔗 공유 URL이 복사되었습니다! 게시판에 붙여넣기(Ctrl+V) 하세요.');
     });
-
-    y += 20; // 한 줄 띄우기
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 22px Malgun Gothic, sans-serif';
-    ctx.fillText(`3. 창조주: ${creatorName}`, 400, Math.min(y, 400));
-
-    const link = document.createElement('a');
-    link.download = `${charName}_소개카드.png`;
-    link.href = c.toDataURL('image/png');
-    link.click();
   }
 </script>
 </body>
