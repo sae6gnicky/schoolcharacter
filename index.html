@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>교실 속 사물 캐릭터 메이커</title>
-  <!-- QR코드 생성을 위한 라이브러리 (QRious) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
     :root { --primary: #4A90E2; --secondary: #FF9F43; --success: #10B981; --bg: #F0F4F8; --card: #FFFFFF; --text: #2C3E50; }
@@ -13,11 +12,17 @@
     .container { max-width: 1150px; margin: 0 auto; background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); }
     header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 24px; color: var(--primary); }
-    
+
     /* 상단 게시판 링크 및 QR 설정 박스 */
     .board-config-box { background: #eef5ff; border: 2px solid #bcd6f7; border-radius: 16px; padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
-    .board-config-box input { flex: 1; min-width: 250px; padding: 10px 14px; border: 1px solid #93c5fd; border-radius: 10px; font-size: 14px; user-select: text; -webkit-user-select: text; }
-    .qr-popup-area { display: flex; align-items: center; gap: 15px; background: white; padding: 8px 15px; border-radius: 12px; border: 1px solid #cbd5e1; }
+    .board-config-box input { flex: 1; min-width: 240px; padding: 10px 14px; border: 1px solid #93c5fd; border-radius: 10px; font-size: 14px; user-select: text; -webkit-user-select: text; }
+    .qr-popup-area { display: flex; align-items: center; gap: 12px; background: white; padding: 8px 15px; border-radius: 12px; border: 2px solid #93c5fd; cursor: pointer; transition: 0.2s; }
+    .qr-popup-area:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(37,99,235,0.15); }
+
+    /* 공통 모달(QR 확대 등) */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: white; border-radius: 24px; padding: 30px; text-align: center; max-width: 440px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
     /* 단계 탭 */
     .steps { display: flex; gap: 10px; margin-bottom: 25px; }
@@ -33,12 +38,23 @@
     .template-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .tpl-btn { padding: 10px 5px; border: 2px solid #cbd5e1; border-radius: 10px; background: white; cursor: pointer; font-weight: bold; font-size: 13px; }
     .tpl-btn.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+
+    /* 캔버스 및 줌/팝업 영역 */
     .canvas-area { display: flex; flex-direction: column; align-items: center; }
-    #canvas-wrapper { position: relative; width: 440px; height: 440px; background: #ffffff; border: 3px solid var(--primary); border-radius: 16px; overflow: hidden; touch-action: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    canvas { position: absolute; top: 0; left: 0; cursor: crosshair; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; justify-content: center; align-items: center; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .canvas-area.fullscreen-mode { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 8000; justify-content: center; padding: 20px; }
+    .canvas-area.fullscreen-mode #canvas-viewport { width: min(76vh, 88vw); height: min(76vh, 88vw); }
+    .zoom-bar { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; background: #f8fafc; padding: 6px 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+    .zoom-btn { padding: 6px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+    .zoom-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+    
+    #canvas-viewport { position: relative; width: 440px; height: 440px; background: #cbd5e1; border: 3px solid var(--primary); border-radius: 16px; overflow: hidden; touch-action: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    #canvas-stage { position: absolute; top: 0; left: 0; width: 440px; height: 440px; transform-origin: 0 0; background: #ffffff; }
+    #canvas-stage canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
+
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; align-items: center; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #e2e8f0; }
     .color-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #ccc; cursor: pointer; }
     .color-dot.active { transform: scale(1.2); box-shadow: 0 0 0 2px #000; }
+
     .ref-preview { height: 110px; background: white; border: 2px dashed var(--secondary); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px; }
     .ref-preview .emoji { font-size: 52px; line-height: 1; }
     .ref-preview .label { font-size: 14px; font-weight: bold; margin-top: 6px; color: #555; }
@@ -47,12 +63,12 @@
     .expr-btn span { font-size: 11px; color: #475569; margin-top: 3px; font-weight: bold; }
     .expr-btn:hover, .expr-btn.active { background: #fffbeb; border-color: var(--secondary); }
 
-    .btn { padding: 11px 20px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .btn { padding: 11px 18px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-secondary { background: var(--secondary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
-    .next-bar { margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #eef2f5; }
+    .next-bar { margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #eef2f5; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
     /* 2단계 레이아웃 */
     .step2-box { max-width: 680px; margin: 0 auto; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed var(--primary); }
@@ -67,29 +83,45 @@
     .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 15px; font-family: inherit; user-select: text; -webkit-user-select: text; }
     .form-group textarea { height: 110px; resize: vertical; }
 
-    .result-card-box { background: white; border: 2px solid var(--success); border-radius: 16px; padding: 20px; text-align: center; display: none; }
+    /* 3단계 완성 카드 미리보기 & 공유 박스 */
+    .result-card-box { background: #f0fdf4; border: 2px solid var(--success); border-radius: 16px; padding: 25px; text-align: center; display: none; }
     .result-card-box.show { display: block; }
-    @media (max-width: 950px) { .step1-grid, .step3-form { grid-template-columns: 1fr; } }
+    .preview-card-ui { max-width: 650px; margin: 15px auto; background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); display: grid; grid-template-columns: 240px 1fr; gap: 20px; text-align: left; align-items: center; border: 2px solid #e2e8f0; }
+    @media (max-width: 950px) { .step1-grid, .step3-form, .preview-card-ui { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
 
+<!-- QR코드 확대 팝업 모달 -->
+<div id="qrModal" class="modal-overlay" onclick="closeQRModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h2 style="margin-top:0; color:var(--primary);">📱 우리반 게시판 QR코드</h2>
+    <p style="font-size:14px; color:#64748b; margin-top:0;">태블릿 카메라로 스캔하면 게시판으로 바로 이동합니다!</p>
+    <div style="background:#f8fafc; padding:20px; border-radius:16px; display:inline-block; border:2px dashed #93c5fd;">
+      <canvas id="qrLargeCanvas" width="300" height="300"></canvas>
+    </div>
+    <div id="qrModalUrlText" style="font-size:12px; color:#94a3b8; margin:12px 0; word-break:break-all;"></div>
+    <button class="btn btn-primary" style="width:100%;" onclick="closeQRModal()">닫기 ✖</button>
+  </div>
+</div>
+
 <div class="container">
   <header>
     <h1>🎨 교실 속 사물 캐릭터 메이커</h1>
-    <div style="font-size:13px; color:#64748b; font-weight:bold;">2학년 교실 창작 활동</div>
+    <div style="font-size:13px; color:#64748b; font-weight:bold;">우리 교실 창작 활동</div>
   </header>
 
+  <!-- 상단 게시판 링크 입력 및 클릭 시 커지는 QR코드 -->
   <div class="board-config-box">
     <div>
       <strong>🏫 선생님 패들렛 / 하이클래스 게시판 링크 입력</strong>
-      <div style="font-size:12px; color:#64748b; margin-top:2px;">링크를 넣으면 학생들이 쓸 수 있는 <strong>QR코드</strong>가 자동으로 만들어집니다!</div>
+      <div style="font-size:12px; color:#64748b; margin-top:2px;">오른쪽 <strong>QR코드를 클릭</strong>하면 칠판에 띄우기 좋게 <strong>크게 팝업</strong>됩니다!</div>
     </div>
     <div style="display:flex; gap:10px; flex:1; justify-content:flex-end; flex-wrap:wrap; align-items:center;">
-      <input type="text" id="padletUrlInput" placeholder="https://padlet.com/... 또는 하이클래스 링크" oninput="generateQRCode()">
-      <div class="qr-popup-area">
-        <canvas id="qrCanvas" width="60" height="60" style="position:static; cursor:default;"></canvas>
-        <span style="font-size:12px; font-weight:bold; color:#2563eb;">👆 학생용<br>자동 QR코드</span>
+      <input type="text" id="padletUrlInput" placeholder="https://padlet.com/... 또는 게시판 주소 입력" oninput="generateQRCode()">
+      <div class="qr-popup-area" onclick="openQRModal()" title="클릭하면 크게 보입니다">
+        <canvas id="qrCanvas" width="56" height="56"></canvas>
+        <span style="font-size:13px; font-weight:bold; color:#2563eb;">🔍 QR 크게 보기<br><small style="font-weight:normal; color:#64748b;">(클릭하세요)</small></span>
       </div>
     </div>
   </div>
@@ -100,12 +132,12 @@
     <button class="step-btn" onclick="goStep(3)">3단계: 캐릭터 소개 & 게시판 올리기</button>
   </div>
 
-  <!-- 1단계 -->
+  <!-- ================= 1단계 ================= -->
   <div id="step1" class="step-section active">
     <div class="step1-grid">
       <div class="panel">
         <h3>1. 밑바탕 도안 고르기</h3>
-        <p style="font-size:12px; color:#64748b; margin-top:0;">도안을 깔고 그 위에 그리거나, 빈 종이에 자유롭게 그려보세요.</p>
+        <p style="font-size:12px; color:#64748b; margin-top:0;">도안을 깔고 그 위에 그리거나, 종이에 직접 그린 뒤 카메라로 찍어도 좋아요!</p>
         <div class="template-list">
           <button class="tpl-btn active" onclick="loadTemplate(0, this)">빈 종이</button>
           <button class="tpl-btn" onclick="loadTemplate(1, this)">도안 1</button>
@@ -122,11 +154,24 @@
         </div>
       </div>
 
-      <div class="canvas-area">
-        <div id="canvas-wrapper">
-          <canvas id="bgCanvas" width="440" height="440"></canvas>
-          <canvas id="drawCanvas" width="440" height="440"></canvas>
+      <!-- 가운데: 줌 & 팝업 지원 캔버스 -->
+      <div class="canvas-area" id="canvasAreaBox">
+        <div class="zoom-bar">
+          <span style="font-size:12px; font-weight:bold; color:#475569;">💡 두 손가락으로 확대/이동 가능</span>
+          <button class="zoom-btn" onclick="adjustZoom(1.25)">➕ 확대</button>
+          <button class="zoom-btn" onclick="adjustZoom(0.8)">➖ 축소</button>
+          <button class="zoom-btn" id="zoomResetBtn" onclick="resetZoom()">100%</button>
+          <button class="zoom-btn" id="panModeBtn" onclick="togglePanMode()">✋ 화면 이동모드</button>
+          <button class="zoom-btn" id="fullscreenBtn" style="background:#eff6ff; border-color:#93c5fd; color:#2563eb;" onclick="toggleFullscreenDraw()">🔍 크게 그리기 팝업</button>
         </div>
+
+        <div id="canvas-viewport">
+          <div id="canvas-stage">
+            <canvas id="bgCanvas" width="440" height="440"></canvas>
+            <canvas id="drawCanvas" width="440" height="440"></canvas>
+          </div>
+        </div>
+
         <div class="toolbar">
           <div class="color-dot active" style="background:#000000;" onclick="setColor('#000000', this)"></div>
           <div class="color-dot" style="background:#EF4444;" onclick="setColor('#EF4444', this)"></div>
@@ -154,18 +199,23 @@
       </div>
     </div>
 
+    <!-- 1단계 하단: 화면 그림 다운받기 & 카메라로 손그림 찍어 저장하기 2종 버튼 -->
     <div class="next-bar">
-      <button class="btn btn-secondary" onclick="downloadMyDrawing()">💾 내 캐릭터 그림 먼저 저장하기 (PNG)</button>
-      <button class="btn btn-primary" onclick="saveAndGoStep2()">다음 단계로 (움직이게 만들기) 👉</button>
+      <button class="btn btn-secondary" onclick="downloadMyDrawing()">💾 1단계 그림 다운받기 (PNG)</button>
+      <label class="btn btn-success" style="margin:0;">
+        📷 카메라로 찍어서 그림 저장 (손그림용)
+        <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhotoSave(event)">
+      </label>
+      <button class="btn btn-primary" onclick="goStep(2)">다음 단계로 (움직이게 만들기) 👉</button>
     </div>
   </div>
 
-  <!-- 2단계 -->
+  <!-- ================= 2단계 ================= -->
   <div id="step2" class="step-section">
     <div class="step2-box">
       <h2 style="margin-top:0; color:var(--primary); text-align:center;">🏃‍♂️ 캐릭터에 생명을 불어넣어 볼까요?</h2>
       <ol>
-        <li>1단계에서 그린 내 캐릭터 그림이 기기에 저장되었는지 확인합니다.</li>
+        <li>1단계에서 저장한 그림(또는 카메라로 찍은 손그림)이 기기에 있는지 확인합니다.</li>
         <li>아래 파란색 <strong>[Animated Drawings 열기]</strong> 버튼을 눌러 이동합니다.</li>
         <li>사이트에서 <strong>[Get Started]</strong> ➔ <strong>[Upload Photo]</strong>를 눌러 내 캐릭터 그림을 올립니다.</li>
         <li>상자 크기를 맞추고, 관절 위치를 콕콕 찍어 맞춥니다.</li>
@@ -173,8 +223,12 @@
         <li>화면의 <strong>[Share]</strong> 버튼이나 전체화면 버튼을 눌러 완성된 영상(MP4)을 기기에 저장합니다.</li>
       </ol>
       <div style="text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운로드</button>
-        <a href="https://sketch.metademolab.com/canvas" target="_blank" class="btn btn-primary" style="text-decoration:none; display:inline-block;">🚀 Meta Animated Drawings 열기 (새 창)</a>
+        <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운받기</button>
+        <label class="btn btn-outline" style="border-color:var(--success); color:var(--success); margin:0;">
+          📷 손그림 카메라로 찍어 저장
+          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhotoSave(event)">
+        </label>
+        <a href="https://sketch.metademolab.com/canvas" target="_blank" class="btn btn-primary" style="text-decoration:none;">🚀 Meta Animated Drawings 열기 (새 창)</a>
       </div>
     </div>
     <div class="next-bar">
@@ -183,7 +237,7 @@
     </div>
   </div>
 
-  <!-- 3단계 -->
+  <!-- ================= 3단계 ================= -->
   <div id="step3" class="step-section">
     <div class="step3-form">
       <div>
@@ -192,46 +246,62 @@
             2단계에서 저장한<br><strong>움직이는 영상(MP4)</strong>을<br>아래 버튼으로 올려주세요!
           </span>
         </div>
-        <label class="btn btn-secondary" style="display:block; text-align:center;">
+        <label class="btn btn-secondary" style="display:flex; width:100%;">
           📂 움직이는 캐릭터 파일(MP4) 선택
           <input type="file" id="mediaUpload" accept="video/mp4,video/webm,image/gif,image/png" style="display:none;" onchange="previewUploadedMedia(event)">
         </label>
       </div>
 
+      <!-- 요청하신 순서: 1. 캐릭터 이름 -> 2. 캐릭터 이야기 -> 3. 창조주 이름 -->
       <div>
         <h3 style="margin-top:0; color:var(--primary);">📝 내 캐릭터를 소개합니다</h3>
         <div class="form-group">
-          <label>캐릭터 이름</label>
-          <input type="text" id="charName" placeholder="예: 씩씩한 지우개 몽이">
+          <label>1. 캐릭터 이름</label>
+          <input type="text" id="charName" placeholder="예: 재미있는 책">
         </div>
         <div class="form-group">
-          <label>창조주 이름 (학생 이름 또는 번호)</label>
-          <input type="text" id="creatorName" placeholder="예: 2학년 1반 김하늘">
+          <label>2. 캐릭터 이야기 (어떤 물건이고 어떤 성격이나 능력이 있나요?)</label>
+          <textarea id="charStory" placeholder="예: 교실 책꽂이에 사는 이야기 요정이에요. 친구들이 책을 펼치면 재미있는 모험을 보여준답니다!"></textarea>
         </div>
         <div class="form-group">
-          <label>캐릭터 이야기 (어떤 물건이고 어떤 성격이나 능력이 있나요?)</label>
-          <textarea id="charStory" placeholder="예: 교실 칠판 밑에 사는 지우개 요정이에요!"></textarea>
+          <label>3. 창조주 이름 (학생 이름 또는 번호)</label>
+          <input type="text" id="creatorName" placeholder="예: 재미니">
         </div>
-        <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="createStudentCard()">✨ 우리반 게시판에 올릴 내용 만들기</button>
+        <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="createStudentCard()">✨ 캐릭터 소개 카드 완성하기</button>
       </div>
     </div>
 
+    <!-- 완성된 전체 카드 미리보기 및 패들렛/하이클래스 업로드 도구 -->
     <div id="resultCardBox" class="result-card-box">
-      <h3 style="color:var(--success); margin-top:0;">🎉 완성되었습니다! 아래 안내를 따라 올려보세요</h3>
-      <p style="font-size:15px; line-height:1.6; color:#334155;">
-        1. <strong>[📋 게시판에 올릴 내용 복사하기]</strong> 버튼을 누릅니다.<br>
-        2. 선생님이 칠판에 띄워주신 <strong>QR코드</strong>를 스캔해 우리반 게시판(패들렛 등)에 들어갑니다.<br>
-        3. 게시판 글쓰기 창을 누르고 <strong>[붙여넣기(Ctrl+V)]</strong>를 하면 글과 움직이는 영상이 쏙 들어갑니다! (영상이 안 올라가면 영상 파일만 첨부해주세요)
+      <h3 style="color:var(--success); margin-top:0;">🎉 나만의 캐릭터 소개 카드가 완성되었어요!</h3>
+      
+      <div class="preview-card-ui">
+        <div id="cardMediaSlot" style="width:100%; height:220px; background:#f8fafc; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center;"></div>
+        <div>
+          <h2 id="cardTitleSlot" style="margin:0 0 10px 0; color:var(--primary); font-size:22px;"></h2>
+          <div id="cardStorySlot" style="font-size:15px; line-height:1.6; color:#334155; background:#f8fafc; padding:12px; border-radius:10px; white-space:pre-wrap; margin-bottom:14px;"></div>
+          <div id="cardCreatorSlot" style="font-size:14px; font-weight:bold; color:#64748b;"></div>
+        </div>
+      </div>
+
+      <p style="font-size:14px; line-height:1.6; color:#334155; margin-bottom:15px;">
+        💡 <strong>우리반 게시판(패들렛/하이클래스)에 통째로 올리는 방법:</strong><br>
+        • <strong>방법 A (움직이는 전체 카드 파일):</strong> <strong>[📦 움직이는 소개카드(HTML) 다운받기]</strong> 또는 <strong>[🖼️ 소개카드 이미지(PNG) 저장]</strong> 후 패들렛에 파일을 올리세요!<br>
+        • <strong>방법 B (글 복사 + 영상 첨부):</strong> <strong>[📋 소개글 복사하기]</strong>를 눌러 패들렛 본문에 붙여넣고, 2단계의 MP4 영상 파일을 첨부하세요!
       </p>
-      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:15px;">
-        <button class="btn btn-success" onclick="copyCardContent()">📋 게시판에 올릴 내용 복사하기</button>
-        <a id="goToBoardBtn" href="#" target="_blank" class="btn btn-primary" style="text-decoration:none; display:inline-block;">🚀 우리반 게시판으로 바로 이동</a>
+
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="downloadCompleteHtmlCard()">📦 움직이는 소개카드(HTML) 다운받기</button>
+        <button class="btn btn-outline" onclick="downloadCardAsImage()">🖼️ 소개카드 이미지(PNG) 저장</button>
+        <button class="btn btn-success" onclick="copyCardContent()">📋 소개글 복사하기</button>
+        <a id="goToBoardBtn" href="https://padlet.com" target="_blank" class="btn btn-primary" style="text-decoration:none;">🚀 우리반 게시판 열기</a>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+  // 우클릭 및 개발자 도구 단축키 차단 스크립트
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('dragstart', e => e.preventDefault());
   document.addEventListener('keydown', e => {
@@ -240,17 +310,25 @@
     }
   });
 
-  const qr = new QRious({
-    element: document.getElementById('qrCanvas'),
-    size: 60,
-    value: 'https://padlet.com'
-  });
+  // 1. QR코드 생성 및 클릭 시 대형 팝업
+  const qrSmall = new QRious({ element: document.getElementById('qrCanvas'), size: 56, value: 'https://padlet.com' });
+  const qrLarge = new QRious({ element: document.getElementById('qrLargeCanvas'), size: 300, value: 'https://padlet.com' });
 
   function generateQRCode() {
     const url = document.getElementById('padletUrlInput').value.trim() || 'https://padlet.com';
-    qr.value = url;
+    qrSmall.value = url;
+    qrLarge.value = url;
     document.getElementById('goToBoardBtn').href = url;
+    document.getElementById('qrModalUrlText').innerText = url;
     localStorage.setItem('saved_board_url', url);
+  }
+
+  function openQRModal() {
+    generateQRCode();
+    document.getElementById('qrModal').classList.add('show');
+  }
+  function closeQRModal() {
+    document.getElementById('qrModal').classList.remove('show');
   }
 
   const savedUrl = localStorage.getItem('saved_board_url');
@@ -259,6 +337,7 @@
     generateQRCode();
   }
 
+  // 2. 24가지 표정 데이터
   const expressions = [
     { e: '😀', n: '활짝 웃음' }, { e: '😊', n: '수줍은 미소' }, { e: '😆', n: '깔깔 웃음' }, { e: '😉', n: '윙크' },
     { e: '😍', n: '하트 눈' }, { e: '🤩', n: '반짝반짝' }, { e: '😎', n: '멋쟁이' }, { e: '🥳', n: '신나는 파티' },
@@ -282,9 +361,16 @@
     exprGrid.appendChild(btn);
   });
 
+  // 3. 1단계 캔버스, 정사각형 크롭, 핀치 줌(손가락 확대) & 팝업 모드
+  const viewport = document.getElementById('canvas-viewport');
+  const stage = document.getElementById('canvas-stage');
   const bgCanvas = document.getElementById('bgCanvas'), drawCanvas = document.getElementById('drawCanvas');
   const bgCtx = bgCanvas.getContext('2d'), drawCtx = drawCanvas.getContext('2d');
+
   let isDrawing = false, currentColor = '#000000', isEraser = false;
+  let zoomScale = 1, panX = 0, panY = 0;
+  let isPanMode = false, isDraggingPan = false, panStartX = 0, panStartY = 0;
+  let pinchStartDist = 0, pinchStartScale = 1;
 
   function fillWhiteBackground() {
     bgCtx.fillStyle = '#ffffff';
@@ -292,7 +378,13 @@
   }
   fillWhiteBackground();
 
-  // 도안 이미지 크롭 적용 (정사각형 비율을 유지하며 꽉 차게 그리기)
+  function drawCroppedSquareImage(ctx, img, size) {
+    const ratio = Math.max(size / img.width, size / img.height);
+    const shiftX = (size - img.width * ratio) / 2;
+    const shiftY = (size - img.height * ratio) / 2;
+    ctx.drawImage(img, 0, 0, img.width, img.height, shiftX, shiftY, img.width * ratio, img.height * ratio);
+  }
+
   function loadTemplate(num, btnEl) {
     document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
     if (btnEl) btnEl.classList.add('active');
@@ -302,99 +394,92 @@
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = `https://raw.githubusercontent.com/sae6gnicky/schoolcharacter/main/${numStr}.png`;
-    img.onload = () => {
-      const hRatio = bgCanvas.width / img.width;
-      const vRatio = bgCanvas.height / img.height;
-      const ratio = Math.max(hRatio, vRatio);
-      const centerShiftX = (bgCanvas.width - img.width * ratio) / 2;
-      const centerShiftY = (bgCanvas.height - img.height * ratio) / 2;
-      bgCtx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
+    img.onload = () => drawCroppedSquareImage(bgCtx, img, bgCanvas.width);
+  }
+
+  function updateStageTransform() {
+    if (zoomScale <= 1) { zoomScale = 1; panX = 0; panY = 0; }
+    stage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+    document.getElementById('zoomResetBtn').innerText = `${Math.round(zoomScale * 100)}%`;
+  }
+
+  function adjustZoom(factor) {
+    zoomScale = Math.min(4, Math.max(1, zoomScale * factor));
+    updateStageTransform();
+  }
+
+  function resetZoom() {
+    zoomScale = 1; panX = 0; panY = 0;
+    updateStageTransform();
+  }
+
+  function togglePanMode() {
+    isPanMode = !isPanMode;
+    document.getElementById('panModeBtn').classList.toggle('active', isPanMode);
+    drawCanvas.style.cursor = isPanMode ? 'grab' : 'crosshair';
+  }
+
+  function toggleFullscreenDraw() {
+    const area = document.getElementById('canvasAreaBox');
+    const btn = document.getElementById('fullscreenBtn');
+    const isFull = area.classList.toggle('fullscreen-mode');
+    btn.innerText = isFull ? '✖ 크게 그리기 닫기' : '🔍 크게 그리기 팝업';
+    resetZoom();
+  }
+
+  // 확대 상태에서도 정확한 캔버스 좌표를 계산
+  function getPos(clientX, clientY) {
+    const rect = drawCanvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (drawCanvas.width / rect.width),
+      y: (clientY - rect.top) * (drawCanvas.height / rect.height)
     };
   }
 
-  function getPos(e) {
-    const rect = drawCanvas.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: (cx - rect.left) * (drawCanvas.width / rect.width), y: (cy - rect.top) * (drawCanvas.height / rect.height) };
+  function beginStroke(x, y) {
+    isDrawing = true;
+    const p = getPos(x, y);
+    drawCtx.beginPath();
+    drawCtx.moveTo(p.x, p.y);
   }
 
-  function startDraw(e) { e.preventDefault(); isDrawing = true; const p = getPos(e); drawCtx.beginPath(); drawCtx.moveTo(p.x, p.y); }
-  function moveDraw(e) {
+  function moveStroke(x, y) {
     if (!isDrawing) return;
-    e.preventDefault();
-    const p = getPos(e);
+    const p = getPos(x, y);
     drawCtx.lineWidth = document.getElementById('lineWidth').value;
     drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
     drawCtx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
     if (!isEraser) drawCtx.strokeStyle = currentColor;
-    drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
-  }
-  function endDraw() { isDrawing = false; }
-
-  drawCanvas.addEventListener('mousedown', startDraw); drawCanvas.addEventListener('mousemove', moveDraw); window.addEventListener('mouseup', endDraw);
-  drawCanvas.addEventListener('touchstart', startDraw, { passive: false }); drawCanvas.addEventListener('touchmove', moveDraw, { passive: false }); window.addEventListener('touchend', endDraw);
-
-  function setColor(color, dotEl) {
-    isEraser = false; currentColor = color;
-    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
-    if (dotEl) dotEl.classList.add('active');
-  }
-  function setEraser() { isEraser = true; document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active')); }
-  function clearDrawCanvas() { if (confirm('내가 그린 그림을 모두 지울까요?')) drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height); }
-
-  function downloadMyDrawing() {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = bgCanvas.width; tempCanvas.height = bgCanvas.height;
-    const tCtx = tempCanvas.getContext('2d');
-    tCtx.fillStyle = '#ffffff'; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-    if (document.getElementById('mergeTplCheck').checked) tCtx.drawImage(bgCanvas, 0, 0);
-    tCtx.drawImage(drawCanvas, 0, 0);
-    const link = document.createElement('a');
-    link.download = 'my_character.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
-  }
-  function saveAndGoStep2() { downloadMyDrawing(); goStep(2); }
-
-  function goStep(num) {
-    document.querySelectorAll('.step-btn').forEach((b, i) => b.classList.toggle('active', i === num - 1));
-    document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
+    drawCtx.lineTo(p.x, p.y);
+    drawCtx.stroke();
   }
 
-  let currentUploadedDataUrl = null;
-  function previewUploadedMedia(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 8 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (8MB 이하로 올려주세요).');
-    const reader = new FileReader();
-    reader.onload = evt => {
-      currentUploadedDataUrl = evt.target.result;
-      document.getElementById('mediaPreviewBox').innerHTML = `<video src="${currentUploadedDataUrl}" autoplay loop muted playsinline></video>`;
-    };
-    reader.readAsDataURL(file);
-  }
+  // 마우스 이벤트
+  drawCanvas.addEventListener('mousedown', e => {
+    e.preventDefault();
+    if (isPanMode) {
+      isDraggingPan = true;
+      panStartX = e.clientX - panX;
+      panStartY = e.clientY - panY;
+      return;
+    }
+    beginStroke(e.clientX, e.clientY);
+  });
+  window.addEventListener('mousemove', e => {
+    if (isDraggingPan) {
+      panX = e.clientX - panStartX;
+      panY = e.clientY - panStartY;
+      updateStageTransform();
+      return;
+    }
+    moveStroke(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', () => { isDrawing = false; isDraggingPan = false; });
 
-  function createStudentCard() {
-    const charName = document.getElementById('charName').value.trim();
-    const creatorName = document.getElementById('creatorName').value.trim();
-    const charStory = document.getElementById('charStory').value.trim();
-    if (!currentUploadedDataUrl) return alert('2단계에서 저장한 움직이는 캐릭터(MP4) 파일을 먼저 선택해 주세요!');
-    if (!charName || !creatorName || !charStory) return alert('캐릭터 이름, 창조주 이름, 이야기를 모두 적어주세요!');
-
-    document.getElementById('resultCardBox').classList.add('show');
-    alert('✨ 게시판에 올릴 준비가 완료되었습니다! 아래 초록색 복사 버튼을 눌러주세요.');
-  }
-
-  function copyCardContent() {
-    const charName = document.getElementById('charName').value.trim();
-    const creatorName = document.getElementById('creatorName').value.trim();
-    const charStory = document.getElementById('charStory').value.trim();
-    
-    const textToCopy = `[사물 캐릭터 소개] ✨\n- 캐릭터 이름: ${charName}\n- 창조주: ${creatorName}\n- 소개: ${charStory}`;
-    
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      alert('📋 내용이 클립보드에 복사되었습니다!\n패들렛 게시판 글쓰기 창을 꾹 누르고 [붙여넣기] 하세요.');
-    });
-  }
-</script>
-</body>
-</html>
+  // 터치 이벤트 (1손가락: 그리기 또는 이동, 2손가락: 핀치 줌 확대/이동)
+  drawCanvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (e.touches.length >= 2) {
+      isDrawing = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].client
