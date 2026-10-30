@@ -14,7 +14,6 @@
     header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; }
     h1 { margin: 0; font-size: 24px; color: var(--primary); }
 
-    /* 상단 게시판 링크 및 학생 배포용 QR 박스 */
     .board-config-box { background: #eef5ff; border: 2px solid #bcd6f7; border-radius: 16px; padding: 15px 20px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
     .board-config-box input { flex: 1; min-width: 220px; padding: 10px 14px; border: 1px solid #93c5fd; border-radius: 10px; font-size: 14px; user-select: text; -webkit-user-select: text; }
     .qr-popup-area { display: flex; align-items: center; gap: 10px; background: white; padding: 6px 14px; border-radius: 12px; border: 2px solid #93c5fd; cursor: pointer; transition: 0.2s; }
@@ -100,7 +99,7 @@
 <!-- 공유된 URL로 들어왔을 때 보이는 카드 전용 뷰어 (교사용 GIF 저장 / HTML 저장 버튼 탑재) -->
 <div id="sharedViewerContainer">
   <div class="preview-card-ui" style="max-width:740px; margin:0 auto;">
-    <div id="viewerMediaSlot" style="width:100%; height:260px; background:#f8fafc; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center;"></div>
+    <div id="viewerMediaSlot" style="width:100%; height:260px; background:#ffffff; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0;"></div>
     <div>
       <h2 id="viewerTitleSlot" style="margin:0 0 12px 0; color:var(--primary); font-size:24px;"></h2>
       <div id="viewerStorySlot" style="font-size:16px; line-height:1.6; color:#334155; background:#f8fafc; padding:15px; border-radius:12px; white-space:pre-wrap; margin-bottom:16px;"></div>
@@ -114,7 +113,7 @@
   </div>
 </div>
 
-<!-- QR코드 확대 팝업 모달 (학생 접속용 QR & 게시판 직행 QR 모두 지원) -->
+<!-- QR코드 확대 팝업 모달 -->
 <div id="qrModal" class="modal-overlay" onclick="closeQRModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <h2 style="margin-top:0; color:var(--primary);">📱 칠판 제시용 QR코드</h2>
@@ -298,7 +297,7 @@
         <h3 style="margin-top:0; color:var(--primary);">📝 내 캐릭터를 소개합니다</h3>
         <div class="form-group">
           <label>1. 캐릭터 이름</label>
-          <input type="text" id="charName" placeholder="예: 재미재미 책">
+          <input type="text" id="charName" placeholder="예: 재미재미책">
         </div>
         <div class="form-group">
           <label>2. 캐릭터 이야기 (어떤 물건이고 어떤 성격이나 능력이 있나요?)</label>
@@ -306,7 +305,7 @@
         </div>
         <div class="form-group">
           <label>3. 창조주 이름 (학생 이름 또는 번호)</label>
-          <input type="text" id="creatorName" placeholder="예: 김물건">
+          <input type="text" id="creatorName" placeholder="예: 이물건">
         </div>
         <button class="btn btn-primary" style="width:100%; font-size:16px;" onclick="createStudentCard()">✨ 움직이는 캐릭터 소개 카드 만들기</button>
       </div>
@@ -316,7 +315,7 @@
       <h3 style="color:var(--success); margin-top:0;">🎉 나만의 움직이는 캐릭터 소개 카드가 완성되었어요!</h3>
       
       <div class="preview-card-ui">
-        <div id="cardMediaSlot" style="width:100%; height:220px; background:#f8fafc; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center;"></div>
+        <div id="cardMediaSlot" style="width:100%; height:220px; background:#ffffff; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center;"></div>
         <div>
           <h2 id="cardTitleSlot" style="margin:0 0 10px 0; color:var(--primary); font-size:22px;"></h2>
           <div id="cardStorySlot" style="font-size:15px; line-height:1.6; color:#334155; background:#f8fafc; padding:12px; border-radius:10px; white-space:pre-wrap; margin-bottom:14px;"></div>
@@ -360,7 +359,7 @@
   // 1. 학생 태블릿으로 게시판 주소를 자동 전달하는 스마트 링크 & QR 시스템
   const qrSmall = new QRious({ element: document.getElementById('qrCanvas'), size: 52, value: window.location.href });
   const qrLarge = new QRious({ element: document.getElementById('qrLargeCanvas'), size: 280, value: window.location.href });
-  let currentQRMode = 'app'; // 'app': 게시판 주소가 심어진 학생 활동 시작 링크, 'board': 게시판 직행 링크
+  let currentQRMode = 'app';
 
   function getNormalizedTeacherUrl() {
     let raw = document.getElementById('padletUrlInput').value.trim();
@@ -369,7 +368,6 @@
     return raw;
   }
 
-  // 학생 태블릿에 교사 게시판 주소(?board=...)를 자동으로 심어주는 전용 접속 주소 생성
   function getStudentStartAppUrl() {
     const baseUrl = window.location.origin + window.location.pathname;
     const teacherBoard = getNormalizedTeacherUrl();
@@ -430,14 +428,9 @@
 
   const urlParams = new URLSearchParams(window.location.search);
   const boardFromUrl = urlParams.get('board');
-  if (boardFromUrl) {
-    // 학생이 선생님 QR로 접속한 경우: 학생 태블릿에도 게시판 주소 자동 저장!
-    localStorage.setItem('saved_board_url', boardFromUrl);
-  }
+  if (boardFromUrl) localStorage.setItem('saved_board_url', boardFromUrl);
   const savedUrl = boardFromUrl || localStorage.getItem('saved_board_url');
-  if (savedUrl) {
-    document.getElementById('padletUrlInput').value = savedUrl;
-  }
+  if (savedUrl) document.getElementById('padletUrlInput').value = savedUrl;
   generateQRCode();
 
   // 2. 24가지 표정 데이터
@@ -641,8 +634,9 @@
     document.querySelectorAll('.step-section').forEach((s, i) => s.classList.toggle('active', i === num - 1));
   }
 
-  // 4. 3단계: GIF 저장 / HTML 저장 / CORS 우회 공유 URL 생성 및 전용 뷰어
+  // 4. 3단계: GIF 저장 / HTML 저장 / 텍스트 URL 내장 + 원본 MP4 스트리밍 공유 URL 시스템
   let currentUploadedDataUrl = null;
+  let currentRawFile = null;
   let currentMediaType = 'video';
   let gifWorkerBlobUrl = null;
 
@@ -655,6 +649,7 @@
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (15MB 이하로 올려주세요).');
+    currentRawFile = file;
     currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
     const reader = new FileReader();
     reader.onload = evt => {
@@ -701,7 +696,7 @@
     ctx.lineWidth = 8;
     ctx.strokeRect(4, 4, width - 8, height - 8);
 
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(24, 24, 330, 352);
     if (mediaEl) {
       const mw = mediaEl.videoWidth || mediaEl.naturalWidth || 300;
@@ -736,7 +731,7 @@
   }
 
   async function downloadCardAsAnimatedGif(btnId = 'saveGifBtn') {
-    if (!currentUploadedDataUrl) return;
+    if (!currentUploadedDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시 후 다시 눌러주세요!');
     const charName = document.getElementById('charName').value.trim() || '캐릭터';
     const charStory = document.getElementById('charStory').value.trim() || '';
     const creatorName = document.getElementById('creatorName').value.trim() || '학생';
@@ -810,10 +805,10 @@
     const safeTypeJson = JSON.stringify(currentMediaType);
 
     const mediaTag = currentMediaType === 'video'
-      ? `<video id="cardMedia" src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
-      : `<img id="cardMedia" src="${currentUploadedDataUrl}" style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;">`;
+      ? `<video id="cardMedia" src="${currentUploadedDataUrl}" crossorigin="anonymous" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
+      : `<img id="cardMedia" src="${currentUploadedDataUrl}" crossorigin="anonymous" style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;">`;
 
-    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"><\/script><style>body{font-family:'Pretendard','Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:92vh;}.card{max-width:740px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:center;border:3px solid #4A90E2;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;font-size:16px;}.creator{font-weight:bold;color:#64748b;font-size:16px;}.action-bar{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}.btn{padding:12px 22px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);}.btn-gif{background:#FF9F43;}.btn-html{background:#4A90E2;}.btn:disabled{opacity:0.6;cursor:not-allowed;}</style></head><body oncontextmenu="return false"><div class="card"><div style="background:#f8fafc;padding:10px;border-radius:14px;text-align:center;">${mediaTag}</div><div><h1>1. 캐릭터 이름: ${escapeHtml(charName)}</h1><div class="story">2. 캐릭터 이야기:\n${escapeHtml(charStory)}</div><div class="creator">3. 창조주: ${escapeHtml(creatorName)}</div></div></div><div class="action-bar"><button class="btn btn-gif" id="gifBtn" onclick="saveAsGif()">🎞️ GIF로 저장</button><button class="btn btn-html" onclick="saveAsHtml()">📦 HTML로 저장</button></div><script>
+    return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"><\/script><style>body{font-family:'Pretendard','Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:92vh;}.card{max-width:740px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:center;border:3px solid #4A90E2;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;font-size:16px;}.creator{font-weight:bold;color:#64748b;font-size:16px;}.action-bar{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}.btn{padding:12px 22px;border:none;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;box-shadow:0 4px 10px rgba(0,0,0,0.1);}.btn-gif{background:#FF9F43;}.btn-html{background:#4A90E2;}.btn:disabled{opacity:0.6;cursor:not-allowed;}</style></head><body oncontextmenu="return false"><div class="card"><div style="background:#ffffff;padding:10px;border-radius:14px;text-align:center;">${mediaTag}</div><div><h1>1. 캐릭터 이름: ${escapeHtml(charName)}</h1><div class="story">2. 캐릭터 이야기:\n${escapeHtml(charStory)}</div><div class="creator">3. 창조주: ${escapeHtml(creatorName)}</div></div></div><div class="action-bar"><button class="btn btn-gif" id="gifBtn" onclick="saveAsGif()">🎞️ GIF로 저장</button><button class="btn btn-html" onclick="saveAsHtml()">📦 HTML로 저장</button></div><script>
 const cName=${safeNameJson}, cStory=${safeStoryJson}, cCreator=${safeCreatorJson}, mType=${safeTypeJson};
 function saveAsHtml(){
   const htmlContent = '<!DOCTYPE html>' + document.documentElement.outerHTML;
@@ -826,7 +821,7 @@ function saveAsHtml(){
 function drawFrame(ctx, w, h, mEl){
   ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h);
   ctx.strokeStyle='#4A90E2'; ctx.lineWidth=8; ctx.strokeRect(4,4,w-8,h-8);
-  ctx.fillStyle='#f8fafc'; ctx.fillRect(24,24,330,352);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(24,24,330,352);
   if(mEl){
     const mw=mEl.videoWidth||mEl.naturalWidth||300, mh=mEl.videoHeight||mEl.naturalHeight||300;
     const sc=Math.min(310/mw, 330/mh), dw=mw*sc, dh=mh*sc;
@@ -882,7 +877,7 @@ async function saveAsGif(){
   }
 
   function downloadCompleteHtmlCard() {
-    if (!currentUploadedDataUrl) return;
+    if (!currentUploadedDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시만 기다려주세요!');
     const charName = document.getElementById('charName').value.trim() || '캐릭터';
     const creatorName = document.getElementById('creatorName').value.trim() || '학생';
     const cardHtml = buildStandaloneCardHtml();
@@ -893,33 +888,31 @@ async function saveAsGif(){
     link.click();
   }
 
-  // CORS 차단 없이 100% 작동하는 다중 클라우드 업로드 + 우리 웹앱 전용 카드 뷰어 URL 생성
-  async function uploadCardDataWithFallback(payloadStr) {
-    // 1순위: jsonblob.com 무료 JSON 저장소 (CORS 공식 허용)
-    try {
-      const r1 = await fetch('https://jsonblob.com/api/jsonBlob', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: payloadStr
-      });
-      if (r1.ok) {
-        const loc = r1.headers.get('Location') || r1.headers.get('location') || r1.headers.get('X-jsonblob');
-        if (loc) {
-          const id = loc.split('/').pop();
-          return `https://jsonblob.com/api/jsonBlob/${id}`;
-        }
-      }
-    } catch (e) {}
+  // 데이터 URL을 실제 Blob 파일로 변환
+  function dataURLtoBlob(dataurl) {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new Blob([u8arr], { type: mime });
+  }
 
-    // 2순위: tmpfiles.org 직접 또는 CORS 우회 프록시 경유 업로드
-    const endpoints = [
+  // 원본 영상(MP4) 바이너리 파일만 가볍게 분리하여 고속 업로드
+  async function uploadRawMediaWithFallback() {
+    const mediaBlob = currentRawFile || dataURLtoBlob(currentUploadedDataUrl);
+    const ext = currentMediaType === 'video' ? 'mp4' : 'png';
+
+    // 1순위: tmpfiles.org 직접 또는 프록시 경유 바이너리 업로드
+    const tmpEndpoints = [
       'https://tmpfiles.org/api/v1/upload',
       'https://corsproxy.io/?' + encodeURIComponent('https://tmpfiles.org/api/v1/upload')
     ];
-    for (const ep of endpoints) {
+    for (const ep of tmpEndpoints) {
       try {
         const fd = new FormData();
-        fd.append('file', new Blob([payloadStr], { type: 'application/json' }), 'card.json');
+        fd.append('file', mediaBlob, `char.${ext}`);
         const res = await fetch(ep, { method: 'POST', body: fd });
         const json = await res.json();
         if (json && json.data && json.data.url) {
@@ -927,9 +920,25 @@ async function saveAsGif(){
         }
       } catch (e) {}
     }
-    throw new Error('업로드 서버 응답 지연');
+
+    // 2순위: litterbox (72시간 유지 클라우드) 업로드
+    try {
+      const fd = new FormData();
+      fd.append('reqtype', 'fileupload');
+      fd.append('time', '72h');
+      fd.append('fileToUpload', mediaBlob, `char.${ext}`);
+      const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://litterbox.catbox.moe/resources/internals/api.php'), {
+        method: 'POST',
+        body: fd
+      });
+      const textUrl = (await res.text()).trim();
+      if (textUrl.startsWith('https://')) return textUrl;
+    } catch (e) {}
+
+    throw new Error('미디어 업로드 실패');
   }
 
+  // 글자(이름, 이야기, 창조주)는 URL 파라미터에 직접 심어서 undefined 원천 차단!
   async function generateLiveCardUrl() {
     if (!currentUploadedDataUrl) return;
     const btn = document.getElementById('makeUrlBtn');
@@ -938,17 +947,21 @@ async function saveAsGif(){
     btn.disabled = true;
 
     try {
-      const payload = JSON.stringify({
-        charName: document.getElementById('charName').value.trim() || '캐릭터',
-        charStory: document.getElementById('charStory').value.trim() || '',
-        creatorName: document.getElementById('creatorName').value.trim() || '학생',
-        mediaType: currentMediaType,
-        mediaData: currentUploadedDataUrl
-      });
+      const charName = document.getElementById('charName').value.trim() || '캐릭터';
+      const charStory = document.getElementById('charStory').value.trim() || '';
+      const creatorName = document.getElementById('creatorName').value.trim() || '학생';
 
-      const rawDataUrl = await uploadCardDataWithFallback(payload);
-      // GitHub Pages 우리 사이트 주소 뒤에 ?card=... 를 붙여 클릭 시 다운로드 대신 깔끔한 카드 뷰어가 열리도록 처리
-      const viewerUrl = `${window.location.origin}${window.location.pathname}?card=${encodeURIComponent(rawDataUrl)}`;
+      const mediaUrl = await uploadRawMediaWithFallback();
+
+      const params = new URLSearchParams();
+      params.set('v', '2');
+      params.set('n', charName);
+      params.set('s', charStory);
+      params.set('c', creatorName);
+      params.set('t', currentMediaType);
+      params.set('m', mediaUrl);
+
+      const viewerUrl = `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 
       const urlBar = document.getElementById('urlResultBar');
       const urlInput = document.getElementById('generatedShareUrl');
@@ -957,9 +970,9 @@ async function saveAsGif(){
       urlBar.classList.add('show');
 
       try { await navigator.clipboard.writeText(viewerUrl); } catch (e) {}
-      alert('🎉 공유 URL이 만들어져 복사되었습니다!\n\n우리반 게시판에 이 URL을 붙여넣으면 친구들이 클릭해 구경할 수 있고, 선생님은 그 주소 안에서 [GIF로 저장]이나 [HTML로 저장]을 누르실 수 있습니다!');
+      alert('🎉 공유 URL이 만들어져 복사되었습니다!\n\n우리반 게시판에 이 URL을 붙여넣으면 글자 깨짐(undefined) 없이 영상과 소개글이 바로 나옵니다!');
     } catch (e) {
-      alert('일시적인 데이터 용량 제한으로 인해 URL 대신 움직이는 HTML 파일로 바로 저장해 드립니다.');
+      alert('일시적인 네트워크 지연으로 인해 움직이는 HTML 파일로 바로 저장해 드립니다.');
       downloadCompleteHtmlCard();
     } finally {
       btn.innerText = origText;
@@ -975,39 +988,54 @@ async function saveAsGif(){
     });
   }
 
-  // 5. 공유된 URL(?card=...)로 접속했을 때 전용 카드 뷰어 화면 자동 실행
+  // 5. 공유된 URL로 접속했을 때 전용 카드 뷰어 화면 즉시 렌더링
   (async function checkSharedCardViewerMode() {
-    const cardDataUrl = urlParams.get('card');
-    if (!cardDataUrl) return;
+    const isV2 = urlParams.get('v') === '2';
+    const legacyCardUrl = urlParams.get('card');
+    if (!isV2 && !legacyCardUrl) return;
 
     document.getElementById('mainAppContainer').style.display = 'none';
     const viewer = document.getElementById('sharedViewerContainer');
     viewer.style.display = 'block';
-    document.getElementById('viewerTitleSlot').innerText = '⏳ 캐릭터 카드를 불러오는 중입니다...';
 
-    try {
-      let res;
-      try {
-        res = await fetch(cardDataUrl);
-      } catch (err) {
-        res = await fetch('https://corsproxy.io/?' + encodeURIComponent(cardDataUrl));
+    if (isV2) {
+      // URL에서 직접 텍스트 추출 (절대 undefined가 뜨지 않음!)
+      const charName = urlParams.get('n') || '이름 없음';
+      const charStory = urlParams.get('s') || '';
+      const creatorName = urlParams.get('c') || '익명';
+      const mType = urlParams.get('t') || 'video';
+      const mediaUrl = urlParams.get('m') || '';
+
+      currentMediaType = mType;
+      currentUploadedDataUrl = mediaUrl;
+      document.getElementById('charName').value = charName;
+      document.getElementById('charStory').value = charStory;
+      document.getElementById('creatorName').value = creatorName;
+
+      document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${charName}`;
+      document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${charStory}`;
+      document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${creatorName}`;
+
+      if (mediaUrl) {
+        document.getElementById('viewerMediaSlot').innerHTML = mType === 'video'
+          ? `<video id="viewerVideoEl" src="${mediaUrl}" crossorigin="anonymous" autoplay loop muted playsinline controls style="width:100%; height:100%; object-fit:contain;"></video>`
+          : `<img id="viewerImgEl" src="${mediaUrl}" crossorigin="anonymous" style="width:100%; height:100%; object-fit:contain;">`;
+
+        // 교사용 GIF/HTML 완벽 저장을 위해 백그라운드에서 영상을 DataURL로 변환 캐싱
+        try {
+          let r;
+          try { r = await fetch(mediaUrl); }
+          catch (err) { r = await fetch('https://corsproxy.io/?' + encodeURIComponent(mediaUrl)); }
+          const blob = await r.blob();
+          const reader = new FileReader();
+          reader.onload = e => {
+            currentUploadedDataUrl = e.target.result;
+            const vEl = document.getElementById('viewerVideoEl') || document.getElementById('viewerImgEl');
+            if (vEl) vEl.src = currentUploadedDataUrl;
+          };
+          reader.readAsDataURL(blob);
+        } catch (e) {}
       }
-      const data = await res.json();
-
-      currentUploadedDataUrl = data.mediaData;
-      currentMediaType = data.mediaType || 'video';
-      document.getElementById('charName').value = data.charName || '';
-      document.getElementById('charStory').value = data.charStory || '';
-      document.getElementById('creatorName').value = data.creatorName || '';
-
-      document.getElementById('viewerMediaSlot').innerHTML = currentMediaType === 'video'
-        ? `<video id="viewerVideoEl" src="${currentUploadedDataUrl}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:contain;"></video>`
-        : `<img id="viewerImgEl" src="${currentUploadedDataUrl}" style="width:100%; height:100%; object-fit:contain;">`;
-      document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${data.charName}`;
-      document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${data.charStory}`;
-      document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${data.creatorName}`;
-    } catch (e) {
-      document.getElementById('viewerTitleSlot').innerText = '⚠️ 보관 기한이 지났거나 잘못된 카드 주소입니다.';
     }
   })();
 </script>
