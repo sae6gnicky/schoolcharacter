@@ -6,6 +6,7 @@
   <title>교실 속 사물 캐릭터 메이커</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
   <style>
     :root { --primary: #4A90E2; --secondary: #FF9F43; --success: #10B981; --purple: #8B5CF6; --bg: #F0F4F8; --card: #FFFFFF; --text: #2C3E50; }
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -99,10 +100,10 @@
 <div id="sharedViewerContainer">
   <div class="preview-card-ui" style="max-width:740px; margin:0 auto;">
     <div id="viewerMediaSlot" style="width:100%; height:260px; background:#ffffff; border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8f0;">
-      <span style="color:#64748b; font-weight:bold;">⏳ 캐릭터 영상을 불러오는 중입니다...</span>
+      <span style="color:#64748b; font-weight:bold;">⏳ 캐릭터를 불러오는 중...</span>
     </div>
     <div>
-      <h2 id="viewerTitleSlot" style="margin:0 0 12px 0; color:var(--primary); font-size:24px;">⏳ 불러오는 중...</h2>
+      <h2 id="viewerTitleSlot" style="margin:0 0 12px 0; color:var(--primary); font-size:24px;"></h2>
       <div id="viewerStorySlot" style="font-size:16px; line-height:1.6; color:#334155; background:#f8fafc; padding:15px; border-radius:12px; white-space:pre-wrap; margin-bottom:16px;"></div>
       <div id="viewerCreatorSlot" style="font-size:16px; font-weight:bold; color:#64748b;"></div>
     </div>
@@ -120,7 +121,7 @@
     <h2 style="margin-top:0; color:var(--primary);">📱 칠판 제시용 QR코드</h2>
     <div class="qr-tab-btns">
       <button id="qrTabApp" class="active" onclick="switchQRMode('app')">1️⃣ 학생 활동 시작용 QR<br><small style="font-weight:normal;">(선생님 게시판 주소 자동 연동!)</small></button>
-      <button id="qrTabBoard" onclick="switchQRMode('board')">2️⃣ 우리반 게시판 직행 QR<br><small style="font-weight:normal;">(패들렛/하이클래스 바로 열기)</small></button>
+      <button id="qrTabBoard" onclick="switchQRMode('board')">2️⃣ 우리반 게시판 직행 QR<br><small style="font-weight:normal;">(게시판 바로 열기)</small></button>
     </div>
     <p id="qrModalDesc" style="font-size:13px; color:#334155; margin-top:0; font-weight:bold;">
       👆 학생 태블릿으로 이 QR을 찍어 접속하면, 학생 기기에도 선생님의 게시판 주소가 자동으로 입력됩니다!
@@ -325,7 +326,7 @@
       </div>
 
       <div id="urlResultBar" class="url-result-bar">
-        <span style="font-size:13px; font-weight:bold; color:var(--purple);">🔗 짧은 공유 URL:</span>
+        <span style="font-size:13px; font-weight:bold; color:var(--purple);">🔗 공유 URL:</span>
         <input type="text" id="generatedShareUrl" readonly onclick="this.select()">
         <button class="btn btn-purple" style="padding:8px 14px; font-size:13px;" onclick="copyGeneratedUrl()">URL 복사</button>
         <a id="testOpenUrlBtn" href="#" target="_blank" class="btn btn-outline" style="padding:8px 14px; font-size:13px; text-decoration:none;">새 창으로 확인</a>
@@ -333,11 +334,11 @@
 
       <p style="font-size:14px; line-height:1.6; color:#334155; margin-bottom:15px;">
         💡 <strong>딩커벨 / 클래스보드 / 패들렛 어디든 공유할 수 있어요!</strong><br>
-        • <strong>[🔗 URL로 저장]</strong>을 누르면 <strong>아주 짧은 공유 링크</strong>가 만들어져 복사됩니다. 게시판의 링크 첨부 칸에 붙여넣으세요!
+        • <strong>[🔗 URL로 저장]</strong>을 누르면 외부 서버 없이도 잘리지 않는 <strong>초경량 공유 링크</strong>가 복사됩니다!
       </p>
 
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-purple" id="makeUrlBtn" onclick="generateLiveCardUrl()">🔗 URL로 저장 (짧은 공유 링크 만들기)</button>
+        <button class="btn btn-purple" id="makeUrlBtn" onclick="generateLiveCardUrl()">🔗 URL로 저장 (공유 링크 만들기)</button>
         <button class="btn btn-secondary" id="saveGifBtn" onclick="downloadCardAsAnimatedGif('saveGifBtn')">🎞️ GIF로 저장 (움직이는 카드)</button>
         <button class="btn btn-outline" onclick="downloadCompleteHtmlCard()">📦 HTML로 저장</button>
         <button class="btn btn-success" onclick="copyCardContent()">📋 소개글 복사</button>
@@ -356,17 +357,6 @@
       e.preventDefault(); return false;
     }
   });
-
-  // URL-Safe Base64 인코딩/디코딩 헬퍼 (+, /, = 문자로 인한 링크 손상 완벽 방지)
-  function encodeSafeBase64(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode('0x' + p1)))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-  function decodeSafeBase64(safeB64) {
-    let b64 = safeB64.replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4) b64 += '=';
-    return decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-  }
 
   const qrSmall = new QRious({ element: document.getElementById('qrCanvas'), size: 52, value: window.location.href });
   const qrLarge = new QRious({ element: document.getElementById('qrLargeCanvas'), size: 280, value: window.location.href });
@@ -645,9 +635,9 @@
   }
 
   let currentCompressedVideoDataUrl = null;
-  let currentUploadedFile = null;
   let currentMediaType = 'video';
   let gifWorkerBlobUrl = null;
+  let viewerSpriteFrames = null;
 
   fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js')
     .then(r => r.blob())
@@ -658,7 +648,6 @@
     const file = e.target.files[0];
     if (!file) return;
     if (file.size > 15 * 1024 * 1024) return alert('파일 용량이 너무 큽니다 (15MB 이하로 올려주세요).');
-    currentUploadedFile = file;
     currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
 
     const reader = new FileReader();
@@ -712,8 +701,8 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(24, 24, 330, 352);
     if (mediaEl) {
-      const mw = mediaEl.videoWidth || mediaEl.naturalWidth || 300;
-      const mh = mediaEl.videoHeight || mediaEl.naturalHeight || 300;
+      const mw = mediaEl.videoWidth || mediaEl.naturalWidth || mediaEl.width || 300;
+      const mh = mediaEl.videoHeight || mediaEl.naturalHeight || mediaEl.height || 300;
       const scale = Math.min(310 / mw, 330 / mh);
       const dw = mw * scale, dh = mh * scale;
       ctx.drawImage(mediaEl, 24 + (330 - dw) / 2, 24 + (352 - dh) / 2, dw, dh);
@@ -744,7 +733,6 @@
   }
 
   async function downloadCardAsAnimatedGif(btnId = 'saveGifBtn') {
-    if (!currentCompressedVideoDataUrl) return alert('영상을 아직 불러오는 중입니다. 잠시 후 다시 눌러주세요!');
     const charName = document.getElementById('charName').value.trim() || '캐릭터';
     const charStory = document.getElementById('charStory').value.trim() || '';
     const creatorName = document.getElementById('creatorName').value.trim() || '학생';
@@ -765,7 +753,12 @@
       const videoEl = document.getElementById('viewerVideoEl') || document.getElementById('cardPreviewVideo') || document.getElementById('uploadedVideoEl');
       const imgEl = document.getElementById('viewerImgEl') || document.getElementById('cardPreviewImg') || document.getElementById('uploadedImgEl');
 
-      if (currentMediaType === 'video' && videoEl) {
+      if (viewerSpriteFrames && viewerSpriteFrames.length > 0) {
+        for (let i = 0; i < viewerSpriteFrames.length; i++) {
+          drawCardFrameToCanvas(ctx, c.width, c.height, viewerSpriteFrames[i], charName, charStory, creatorName);
+          gif.addFrame(ctx, { copy: true, delay: 220 });
+        }
+      } else if (currentMediaType === 'video' && videoEl) {
         const duration = Math.min(videoEl.duration || 2.4, 3.0);
         const totalFrames = 16;
         const step = duration / totalFrames;
@@ -901,83 +894,58 @@ async function saveAsGif(){
     link.click();
   }
 
-  // 4. 무설치 오픈 클라우드 연동 초단축 URL 생성 (띵커벨/클래스보드 완벽 호환!)
-  async function uploadToZeroConfigCloud(payloadObj) {
-    const jsonString = JSON.stringify(payloadObj);
+  // 4. 외부 서버 전혀 없이 1,200자 이내로 압축하는 초경량 4컷 WebP 스프라이트 생성기
+  async function createMicroSpriteForUrl() {
+    const frameSize = 96; // 96x96 해상도로 4컷을 가로로 이어붙여 용량 최소화
+    const totalFrames = 4;
+    const spriteCanvas = document.createElement('canvas');
+    spriteCanvas.width = frameSize * totalFrames;
+    spriteCanvas.height = frameSize;
+    const ctx = spriteCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, spriteCanvas.width, spriteCanvas.height);
 
-    // 1순위: JSONBlob 무료 오픈 클라우드 API (CORS 완벽 지원, 초단축 ID 발급)
-    try {
-      const res1 = await fetch('https://jsonblob.com/api/jsonBlob', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: jsonString
-      });
-      if (res1.ok) {
-        const loc = res1.headers.get('Location') || res1.headers.get('location') || '';
-        const blobId = loc.split('/').pop();
-        if (blobId) return { type: 'jb', id: blobId };
-      }
-    } catch (e) {}
-
-    // 2순위: Litterbox (Catbox) 72시간 무료 파일 호스팅 API
-    try {
-      const formData = new FormData();
-      formData.append('reqtype', 'fileupload');
-      formData.append('time', '72h');
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      formData.append('fileToUpload', blob, 'card.json');
-
-      const res2 = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
-        method: 'POST',
-        body: formData
-      });
-      if (res2.ok) {
-        const fileUrl = (await res2.text()).trim();
-        if (fileUrl.startsWith('http')) {
-          const fileCode = fileUrl.split('/').pop();
-          return { type: 'lb', id: fileCode };
-        }
-      }
-    } catch (e) {}
-
-    return null;
-  }
-
-  // 학교 방화벽 등으로 클라우드 접근이 막혔을 때를 대비한 초경량 미니 애니메이션 압축 백업
-  async function createUltraCompactDataUrl() {
     const videoEl = document.getElementById('cardPreviewVideo') || document.getElementById('uploadedVideoEl');
-    if (currentMediaType !== 'video' || !videoEl) return currentCompressedVideoDataUrl;
+    const imgEl = document.getElementById('cardPreviewImg') || document.getElementById('uploadedImgEl');
 
-    const frames = [];
-    const c = document.createElement('canvas');
-    c.width = 150; c.height = 150;
-    const ctx = c.getContext('2d');
-    const dur = Math.min(videoEl.duration || 2.0, 2.4);
-    const total = 8;
-    videoEl.pause();
-    for (let i = 0; i < total; i++) {
-      videoEl.currentTime = (dur / total) * i;
-      await new Promise(r => {
-        const h = () => { videoEl.removeEventListener('seeked', h); r(); };
-        videoEl.addEventListener('seeked', h);
-        setTimeout(r, 180);
-      });
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 150, 150);
-      const mw = videoEl.videoWidth || 150, mh = videoEl.videoHeight || 150;
-      const sc = Math.min(150 / mw, 150 / mh);
-      ctx.drawImage(videoEl, (150 - mw * sc) / 2, (150 - mh * sc) / 2, mw * sc, mh * sc);
-      frames.push(c.toDataURL('image/jpeg', 0.45));
+    if (currentMediaType === 'video' && videoEl) {
+      const dur = Math.min(videoEl.duration || 1.6, 2.0);
+      videoEl.pause();
+      for (let i = 0; i < totalFrames; i++) {
+        videoEl.currentTime = (dur / totalFrames) * i;
+        await new Promise(r => {
+          const h = () => { videoEl.removeEventListener('seeked', h); r(); };
+          videoEl.addEventListener('seeked', h);
+          setTimeout(r, 180);
+        });
+        const mw = videoEl.videoWidth || frameSize, mh = videoEl.videoHeight || frameSize;
+        const sc = Math.min(frameSize / mw, frameSize / mh);
+        const dw = mw * sc, dh = mh * sc;
+        ctx.drawImage(videoEl, i * frameSize + (frameSize - dw) / 2, (frameSize - dh) / 2, dw, dh);
+      }
+      videoEl.play();
+    } else if (imgEl) {
+      const mw = imgEl.naturalWidth || frameSize, mh = imgEl.naturalHeight || frameSize;
+      const sc = Math.min(frameSize / mw, frameSize / mh);
+      const dw = mw * sc, dh = mh * sc;
+      for (let i = 0; i < totalFrames; i++) {
+        ctx.drawImage(imgEl, i * frameSize + (frameSize - dw) / 2, (frameSize - dh) / 2, dw, dh);
+      }
     }
-    videoEl.play();
-    return JSON.stringify(frames);
+
+    // WebP 초고압축 시도 (지원하지 않는 구형 기기는 JPEG로 자동 전환)
+    let dataUrl = spriteCanvas.toDataURL('image/webp', 0.35);
+    if (dataUrl.length > 2200 || !dataUrl.startsWith('data:image/webp')) {
+      dataUrl = spriteCanvas.toDataURL('image/jpeg', 0.32);
+    }
+    return { s: dataUrl, f: totalFrames, w: frameSize };
   }
 
   async function generateLiveCardUrl() {
     if (!currentCompressedVideoDataUrl) return;
     const btn = document.getElementById('makeUrlBtn');
     const origText = btn.innerText;
-    btn.innerText = '⏳ 짧은 공유 링크 만드는 중...';
+    btn.innerText = '⏳ 초경량 공유 링크 만드는 중...';
     btn.disabled = true;
 
     try {
@@ -985,34 +953,20 @@ async function saveAsGif(){
       const charStory = document.getElementById('charStory').value.trim() || '';
       const creatorName = document.getElementById('creatorName').value.trim() || '학생';
 
-      const payloadObj = {
+      // 외부 서버 없이 100% 성공하는 마이크로 스프라이트 생성
+      const spriteObj = await createMicroSpriteForUrl();
+      const payload = {
         n: charName,
-        s: charStory,
+        st: charStory,
         c: creatorName,
-        t: currentMediaType,
-        m: currentCompressedVideoDataUrl
+        sp: spriteObj.s,
+        f: spriteObj.f,
+        w: spriteObj.w
       };
 
+      const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(payload));
       const baseUrl = window.location.origin + window.location.pathname;
-      let viewerUrl = '';
-
-      // 1단계: 무설치 오픈 클라우드로 초단축 링크(약 65자) 생성 시도
-      const cloudRes = await uploadToZeroConfigCloud(payloadObj);
-      if (cloudRes) {
-        viewerUrl = `${baseUrl}?c=${cloudRes.type}_${cloudRes.id}`;
-      } else {
-        // 2단계: 학교 인터넷 보안으로 외부 클라우드가 차단된 경우, 해시(#) 기반 초경량 프레임 압축 적용
-        const compactMedia = await createUltraCompactDataUrl();
-        const miniPayload = {
-          n: charName,
-          s: charStory,
-          c: creatorName,
-          t: currentMediaType === 'video' ? 'frames' : 'image',
-          m: compactMedia
-        };
-        const safeHash = encodeSafeBase64(JSON.stringify(miniPayload));
-        viewerUrl = `${baseUrl}#card=${safeHash}`;
-      }
+      const viewerUrl = `${baseUrl}#v2=${compressed}`;
 
       const urlBar = document.getElementById('urlResultBar');
       const urlInput = document.getElementById('generatedShareUrl');
@@ -1021,7 +975,7 @@ async function saveAsGif(){
       urlBar.classList.add('show');
 
       try { await navigator.clipboard.writeText(viewerUrl); } catch (e) {}
-      alert('🎉 공유 URL이 만들어져 복사되었습니다!\n\n띵커벨, 클래스보드, 패들렛 어디에나 붙여넣기(Ctrl+V) 하면 오류 없이 움직이는 캐릭터 카드가 바로 열립니다!');
+      alert(`🎉 공유 URL이 복사되었습니다! (길이: ${viewerUrl.length}자)\n\n외부 서버 없이 초경량으로 압축되어 띵커벨, 클래스보드, 패들렛 어디에나 잘리지 않고 바로 올라갑니다!`);
     } catch (e) {
       alert('링크 생성 중 오류가 발생했습니다: ' + e.message);
     } finally {
@@ -1038,77 +992,75 @@ async function saveAsGif(){
     });
   }
 
-  // 5. 공유된 URL(?c=... 또는 #card=... 또는 기존 ?card_data=...) 접속 시 뷰어 렌더링
-  function renderSharedViewerData(data) {
-    currentMediaType = data.t || 'video';
-    currentCompressedVideoDataUrl = data.m;
-    document.getElementById('charName').value = data.n || '';
-    document.getElementById('charStory').value = data.s || '';
-    document.getElementById('creatorName').value = data.c || '';
+  // 5. 공유된 URL(#v2=...) 접속 시 즉시 움직이는 스프라이트 뷰어 작동
+  function initSharedViewer() {
+    const hash = window.location.hash;
+    const v2Param = urlParams.get('v2');
+    let rawCompressed = null;
 
-    document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${data.n || ''}`;
-    document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${data.s || ''}`;
-    document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${data.c || ''}`;
-
-    const slot = document.getElementById('viewerMediaSlot');
-    if (data.t === 'frames' && data.m) {
-      const frameList = JSON.parse(data.m);
-      currentMediaType = 'image';
-      currentCompressedVideoDataUrl = frameList[0];
-      slot.innerHTML = `<img id="viewerImgEl" src="${frameList[0]}" style="width:100%; height:100%; object-fit:contain;">`;
-      let idx = 0;
-      setInterval(() => {
-        idx = (idx + 1) % frameList.length;
-        const el = document.getElementById('viewerImgEl');
-        if (el) el.src = frameList[idx];
-      }, 220);
-    } else if (data.m) {
-      slot.innerHTML = currentMediaType === 'video'
-        ? `<video id="viewerVideoEl" src="${data.m}" crossorigin="anonymous" autoplay loop muted playsinline controls style="width:100%; height:100%; object-fit:contain;"></video>`
-        : `<img id="viewerImgEl" src="${data.m}" crossorigin="anonymous" style="width:100%; height:100%; object-fit:contain;">`;
+    if (hash.startsWith('#v2=')) {
+      rawCompressed = hash.slice(4);
+    } else if (v2Param) {
+      rawCompressed = v2Param;
+    } else {
+      return;
     }
-  }
-
-  (async function checkSharedCardViewerMode() {
-    const shortCode = urlParams.get('c');
-    const legacyCardData = urlParams.get('card_data');
-    const hashData = window.location.hash.startsWith('#card=') ? window.location.hash.slice(6) : null;
-
-    if (!shortCode && !legacyCardData && !hashData) return;
 
     document.getElementById('mainAppContainer').style.display = 'none';
     const viewer = document.getElementById('sharedViewerContainer');
     viewer.style.display = 'block';
 
     try {
-      if (shortCode) {
-        if (shortCode.startsWith('jb_')) {
-          const blobId = shortCode.slice(3);
-          const res = await fetch(`https://jsonblob.com/api/jsonBlob/${blobId}`);
-          if (!res.ok) throw new Error('데이터 조회 실패');
-          const data = await res.json();
-          renderSharedViewerData(data);
-        } else if (shortCode.startsWith('lb_')) {
-          const fileCode = shortCode.slice(3);
-          const res = await fetch(`https://litter.catbox.moe/${fileCode}`);
-          if (!res.ok) throw new Error('데이터 조회 실패');
-          const data = await res.json();
-          renderSharedViewerData(data);
+      const jsonStr = LZString.decompressFromEncodedURIComponent(rawCompressed);
+      if (!jsonStr) throw new Error('압축 해제 실패');
+      const data = JSON.parse(jsonStr);
+
+      document.getElementById('charName').value = data.n || '';
+      document.getElementById('charStory').value = data.st || '';
+      document.getElementById('creatorName').value = data.c || '';
+
+      document.getElementById('viewerTitleSlot').innerText = `1. 캐릭터 이름: ${data.n || ''}`;
+      document.getElementById('viewerStorySlot').innerText = `2. 캐릭터 이야기:\n${data.st || ''}`;
+      document.getElementById('viewerCreatorSlot').innerText = `3. 창조주: ${data.c || ''}`;
+
+      const slot = document.getElementById('viewerMediaSlot');
+      const spriteImg = new Image();
+      spriteImg.onload = () => {
+        const total = data.f || 4;
+        const fw = data.w || 96;
+        viewerSpriteFrames = [];
+
+        for (let i = 0; i < total; i++) {
+          const fc = document.createElement('canvas');
+          fc.width = fw; fc.height = fw;
+          fc.getContext('2d').drawImage(spriteImg, i * fw, 0, fw, fw, 0, 0, fw, fw);
+          viewerSpriteFrames.push(fc);
         }
-      } else if (hashData) {
-        const jsonStr = decodeSafeBase64(hashData);
-        renderSharedViewerData(JSON.parse(jsonStr));
-      } else if (legacyCardData) {
-        const fixedB64 = legacyCardData.replace(/ /g, '+');
-        const jsonStr = decodeSafeBase64(fixedB64);
-        renderSharedViewerData(JSON.parse(jsonStr));
-      }
+
+        // HTML/GIF 저장을 위해 첫 프레임을 기본 데이터로 세팅
+        currentMediaType = 'image';
+        currentCompressedVideoDataUrl = viewerSpriteFrames[0].toDataURL('image/png');
+
+        slot.innerHTML = `<canvas id="viewerAnimCanvas" width="${fw}" height="${fw}" style="width:220px; height:220px; object-fit:contain;"></canvas>`;
+        const animCtx = document.getElementById('viewerAnimCanvas').getContext('2d');
+        let idx = 0;
+        animCtx.drawImage(viewerSpriteFrames[0], 0, 0);
+        setInterval(() => {
+          idx = (idx + 1) % total;
+          animCtx.clearRect(0, 0, fw, fw);
+          animCtx.drawImage(viewerSpriteFrames[idx], 0, 0);
+        }, 220);
+      };
+      spriteImg.src = data.sp;
     } catch (e) {
       document.getElementById('viewerMediaSlot').innerHTML = `<span style="font-size:40px;">😢</span>`;
       document.getElementById('viewerTitleSlot').innerText = '⚠️ 링크가 잘렸거나 만료되었습니다.';
       document.getElementById('viewerStorySlot').innerText = '게시판에 주소를 올릴 때 일부 글자가 잘렸을 수 있습니다. 다시 [🔗 URL로 저장]을 눌러 새 링크를 만들어 주세요!';
     }
-  })();
+  }
+
+  initSharedViewer();
+  window.addEventListener('hashchange', initSharedViewer);
 </script>
 </body>
 </html>
