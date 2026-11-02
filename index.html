@@ -71,11 +71,25 @@
     .btn-success { background: var(--success); color: white; }
     .btn-purple { background: var(--purple); color: white; }
     .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
+    
+    /* Meta Animated Drawings 버튼 130% 확대 스타일 */
+    .btn-meta-large {
+      padding: 15px 26px;
+      font-size: 18.5px;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(74, 144, 226, 0.35);
+    }
+    .btn-meta-large:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(74, 144, 226, 0.45);
+    }
+
     .next-bar { margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #eef2f5; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
     .step2-box { max-width: 720px; margin: 0 auto; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed var(--primary); }
     .step2-box ol { line-height: 1.9; font-size: 16px; padding-left: 20px; }
-    .save-tip-box { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 14px 18px; margin-top: 10px; color: #92400e; font-size: 15px; line-height: 1.7; }
+    .down-guide-img-box { margin-top: 15px; text-align: center; background: #ffffff; padding: 12px; border-radius: 14px; border: 2px solid #cbd5e1; }
+    .down-guide-img-box img { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto; }
 
     .step3-form { display: grid; grid-template-columns: 350px 1fr; gap: 25px; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
     .video-preview-box { width: 100%; height: 300px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
@@ -242,24 +256,24 @@
         <li><strong>[Next]</strong> ➔ <strong>[Agree]</strong>를 누르고, 캐릭터 주변 상자 크기를 맞춘 뒤 색칠이 덜 된 곳은 펜으로 채워줍니다.</li>
         <li>관절(눈, 귀, 어깨, 팔꿈치, 손목, 골반, 무릎, 발목) 위치를 내 그림에 맞게 옮기고 <strong>[Next]</strong>를 누릅니다.</li>
         <li>마음에 드는 재미있는 동작(춤추기, 점프하기, 재미있는 표정 등)을 고릅니다.</li>
-        <li><strong>완성된 영상을 내 기기에 다운로드합니다! (아래 방법 참고 👇)</strong></li>
+        <li><strong>아래 그림을 참고하여 완성된 영상(MP4)을 내 기기에 다운로드합니다! 👇</strong></li>
       </ol>
 
-      <div class="save-tip-box">
-        <strong>📥 움직이는 영상(MP4) 쉽게 다운로드하는 방법!</strong><br>
-        ① 움직이는 내 캐릭터 화면 오른쪽 아래에 있는 <strong>[전체화면 아이콘 (네모 모양 ⛶)]</strong>을 누릅니다.<br>
-        ② 화면이 커지면 오른쪽 아래 구석의 <strong>[점 세 개 (⋮)]</strong> 버튼을 누릅니다.<br>
-        ③ 메뉴에서 <strong>[다운로드 (⬇️)]</strong>를 누르면 내 컴퓨터나 태블릿에 MP4 영상이 저장됩니다!<br>
-        <small style="color:#b45309;">※ 아이패드/아이폰에서 점 세 개가 안 보이면 영상 아래의 <strong>[Share(공유)]</strong> ➔ <strong>[비디오 저장]</strong> 또는 <strong>[파일에 저장]</strong>을 누르세요.</small>
+      <!-- 다운로드 안내 이미지 (down.png) -->
+      <div class="down-guide-img-box">
+        <img src="https://raw.githubusercontent.com/sae6gnicky/schoolcharacter/main/down.png" alt="동영상 다운로드 방법 안내">
       </div>
 
-      <div style="text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운받기</button>
-        <label class="btn btn-outline" style="border-color:var(--success); color:var(--success); margin:0;">
-          📷 손그림 카메라로 찍어 저장
-          <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhotoSave(event)">
-        </label>
-        <a href="https://sketch.metademolab.com/canvas" target="_blank" class="btn btn-primary" style="text-decoration:none;">🚀 Meta Animated Drawings 열기 (새 창)</a>
+      <div style="text-align:center; margin-top:24px; display:flex; flex-direction:column; align-items:center; gap:14px;">
+        <a href="https://sketch.metademolab.com/canvas" target="_blank" class="btn btn-primary btn-meta-large" style="text-decoration:none;">🚀 Meta Animated Drawings 열기 (새 창)</a>
+        
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운받기</button>
+          <label class="btn btn-outline" style="border-color:var(--success); color:var(--success); margin:0;">
+            📷 손그림 카메라로 찍어 저장
+            <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleCameraPhotoSave(event)">
+          </label>
+        </div>
       </div>
     </div>
     <div class="next-bar">
@@ -865,7 +879,6 @@
 
       btn.innerText = '⏳ PPT 파일 저장 중...';
       const pptx = new PptxGenJS();
-      // 기본 16:9 슬라이드 규격 (가로 10.0인치 × 세로 5.625인치) 명시
       pptx.layout = 'LAYOUT_16x9';
       const slide = pptx.addSlide();
 
@@ -883,7 +896,7 @@
         line: { color: 'CBD5E1', width: 1.5 }
       });
 
-      // 움직이는 캐릭터 GIF 삽입 (왼쪽 흰색 상자 정중앙)
+      // 움직이는 캐릭터 GIF 삽입
       if (animatedGifDataUrl) {
         slide.addImage({
           data: animatedGifDataUrl,
