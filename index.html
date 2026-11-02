@@ -6,8 +6,8 @@
   <title>교실 속 사물 캐릭터 메이커</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
-  <!-- PPT 생성을 위한 PptxGenJS 라이브러리 추가 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+  <!-- PPT 생성을 위한 PptxGenJS 공식 안정화 CDN (jsDelivr + unpkg 이중 백업) -->
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" onerror="this.onerror=null;this.src='https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';"></script>
   <style>
     :root { --primary: #4A90E2; --secondary: #FF9F43; --success: #10B981; --purple: #8B5CF6; --bg: #F0F4F8; --card: #FFFFFF; --text: #2C3E50; }
     * { box-sizing: border-box; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
@@ -73,8 +73,9 @@
     .btn-outline { background: white; border: 2px solid var(--primary); color: var(--primary); }
     .next-bar { margin-top: 25px; text-align: center; padding-top: 15px; border-top: 1px solid #eef2f5; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-    .step2-box { max-width: 680px; margin: 0 auto; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed var(--primary); }
+    .step2-box { max-width: 720px; margin: 0 auto; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed var(--primary); }
     .step2-box ol { line-height: 1.9; font-size: 16px; padding-left: 20px; }
+    .save-tip-box { background: #fffbeb; border: 2px solid #f59e0b; border-radius: 12px; padding: 14px 18px; margin-top: 10px; color: #92400e; font-size: 15px; line-height: 1.7; }
 
     .step3-form { display: grid; grid-template-columns: 350px 1fr; gap: 25px; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
     .video-preview-box { width: 100%; height: 300px; background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 10px; }
@@ -236,12 +237,22 @@
       <h2 style="margin-top:0; color:var(--primary); text-align:center;">🏃‍♂️ 캐릭터에 생명을 불어넣어 볼까요?</h2>
       <ol>
         <li>1단계에서 저장한 그림(또는 카메라로 찍은 손그림)이 기기에 있는지 확인합니다.</li>
-        <li>아래 파란색 <strong>[Animated Drawings 열기]</strong> 버튼을 눌러 이동합니다.</li>
+        <li>아래 파란색 <strong>[Meta Animated Drawings 열기]</strong> 버튼을 눌러 이동합니다.</li>
         <li>사이트에서 <strong>[Get Started]</strong> ➔ <strong>[Upload Photo]</strong>를 눌러 내 캐릭터 그림을 올립니다.</li>
-        <li>상자 크기를 맞추고, 관절 위치를 콕콕 찍어 맞춥니다.</li>
-        <li>마음에 드는 재미있는 동작(춤추기, 점프하기, 걷기 등)을 고릅니다.</li>
-        <li>화면의 <strong>[Share]</strong> 버튼이나 전체화면 버튼을 눌러 완성된 영상(MP4)을 기기에 저장합니다.</li>
+        <li><strong>[Next]</strong> ➔ <strong>[Agree]</strong>를 누르고, 캐릭터 주변 상자 크기를 맞춘 뒤 색칠이 덜 된 곳은 펜으로 채워줍니다.</li>
+        <li>관절(눈, 귀, 어깨, 팔꿈치, 손목, 골반, 무릎, 발목) 위치를 내 그림에 맞게 옮기고 <strong>[Next]</strong>를 누릅니다.</li>
+        <li>마음에 드는 재미있는 동작(춤추기, 점프하기, 재미있는 표정 등)을 고릅니다.</li>
+        <li><strong>완성된 영상을 내 기기에 다운로드합니다! (아래 방법 참고 👇)</strong></li>
       </ol>
+
+      <div class="save-tip-box">
+        <strong>📥 움직이는 영상(MP4) 쉽게 다운로드하는 방법!</strong><br>
+        ① 움직이는 내 캐릭터 화면 오른쪽 아래에 있는 <strong>[전체화면 아이콘 (네모 모양 ⛶)]</strong>을 누릅니다.<br>
+        ② 화면이 커지면 오른쪽 아래 구석의 <strong>[점 세 개 (⋮)]</strong> 버튼을 누릅니다.<br>
+        ③ 메뉴에서 <strong>[다운로드 (⬇️)]</strong>를 누르면 내 컴퓨터나 태블릿에 MP4 영상이 저장됩니다!<br>
+        <small style="color:#b45309;">※ 아이패드/아이폰에서 점 세 개가 안 보이면 영상 아래의 <strong>[Share(공유)]</strong> ➔ <strong>[비디오 저장]</strong> 또는 <strong>[파일에 저장]</strong>을 누르세요.</small>
+      </div>
+
       <div style="text-align:center; margin-top:20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="btn btn-outline" onclick="downloadMyDrawing()">📥 1단계 그림 다시 다운받기</button>
         <label class="btn btn-outline" style="border-color:var(--success); color:var(--success); margin:0;">
@@ -303,13 +314,13 @@
       </div>
 
       <p style="font-size:14px; line-height:1.6; color:#334155; margin-bottom:15px; font-weight:bold;">
-        💡 띵커벨이나 클래스보드에 아래 파일 중 하나를 첨부해 보세요! (PPT를 가장 추천합니다)
+        💡 원하는 파일 형식(GIF / HTML / PPT)으로 다운로드하여 우리반 게시판에 올려보세요!
       </p>
 
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button class="btn btn-purple" id="makePptBtn" onclick="downloadCardAsPpt()">📊 PPT로 저장 (띵커벨/클래스보드 추천)</button>
         <button class="btn btn-secondary" id="saveGifBtn" onclick="downloadCardAsAnimatedGif('saveGifBtn')">🎞️ GIF로 저장 (움직이는 움짤)</button>
         <button class="btn btn-outline" onclick="downloadCompleteHtmlCard()">📦 HTML로 저장 (웹 파일)</button>
+        <button class="btn btn-purple" id="makePptBtn" onclick="downloadCardAsPpt()">📊 PPT로 저장 (움직이는 슬라이드)</button>
         <button class="btn btn-success" onclick="copyCardContent()">📋 소개글 복사</button>
         <button class="btn btn-primary" onclick="openTeacherBoard()">🚀 우리반 게시판 열기</button>
       </div>
@@ -695,10 +706,11 @@
     ctx.fillText(`3. 창조주: ${creatorName}`, 380, 355);
   }
 
+  // 1. GIF 다운로드 함수
   async function downloadCardAsAnimatedGif(btnId = 'saveGifBtn') {
-    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const charName = document.getElementById('charName').value.trim() || '재미재미책';
     const charStory = document.getElementById('charStory').value.trim() || '';
-    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const creatorName = document.getElementById('creatorName').value.trim() || '이물건';
     const btn = document.getElementById(btnId);
     const origText = btn.innerText;
     btn.disabled = true;
@@ -756,54 +768,152 @@
     }
   }
 
-  // PPT(.pptx) 파일 즉시 생성 및 다운로드 함수
+  // PptxGenJS 동적 로더 (네트워크 오류로 안 불러와졌을 때 자동 재시도)
+  async function ensurePptxLibraryLoaded() {
+    if (typeof PptxGenJS !== 'undefined') return true;
+    const urls = [
+      'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js',
+      'https://unpkg.com/pptxgenjs@3.12.0/dist/pptxgen.bundle.js'
+    ];
+    for (const url of urls) {
+      try {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = url;
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+        if (typeof PptxGenJS !== 'undefined') return true;
+      } catch (e) {}
+    }
+    return false;
+  }
+
+  // PPT 슬라이드 안에 넣을 '움직이는 캐릭터 GIF' DataURL 생성기
+  async function buildCharacterAnimatedGifDataUrl(onProgress) {
+    const videoEl = document.getElementById('cardPreviewVideo') || document.getElementById('uploadedVideoEl');
+    const imgEl = document.getElementById('cardPreviewImg') || document.getElementById('uploadedImgEl');
+
+    if (currentMediaType !== 'video' || !videoEl) {
+      return imgEl ? imgEl.src : currentCompressedVideoDataUrl;
+    }
+
+    if (!gifWorkerBlobUrl) {
+      const r = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js');
+      gifWorkerBlobUrl = URL.createObjectURL(await r.blob());
+    }
+
+    const size = 320;
+    const c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    const ctx = c.getContext('2d');
+    const gif = new GIF({ workers: 2, quality: 10, width: size, height: size, workerScript: gifWorkerBlobUrl });
+
+    const duration = Math.min(videoEl.duration || 2.2, 2.6);
+    const totalFrames = 12;
+    const step = duration / totalFrames;
+    videoEl.pause();
+
+    for (let i = 0; i < totalFrames; i++) {
+      if (onProgress) onProgress(Math.round(((i + 1) / totalFrames) * 100));
+      videoEl.currentTime = i * step;
+      await new Promise(res => {
+        const h = () => { videoEl.removeEventListener('seeked', h); res(); };
+        videoEl.addEventListener('seeked', h);
+        setTimeout(res, 220);
+      });
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      const mw = videoEl.videoWidth || size, mh = videoEl.videoHeight || size;
+      const sc = Math.min(size / mw, size / mh);
+      const dw = mw * sc, dh = mh * sc;
+      ctx.drawImage(videoEl, (size - dw) / 2, (size - dh) / 2, dw, dh);
+      gif.addFrame(ctx, { copy: true, delay: Math.round(step * 1000) });
+    }
+    videoEl.play();
+
+    return await new Promise((resolve) => {
+      gif.on('finished', blob => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      gif.render();
+    });
+  }
+
+  // 2. PPT(.pptx) 다운로드 함수 (슬라이드 안에서 캐릭터가 살아 움직이는 GIF로 삽입!)
   async function downloadCardAsPpt() {
-    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const charName = document.getElementById('charName').value.trim() || '재미재미책';
     const charStory = document.getElementById('charStory').value.trim() || '';
-    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const creatorName = document.getElementById('creatorName').value.trim() || '이물건';
     const btn = document.getElementById('makePptBtn');
     const origText = btn.innerText;
-    btn.innerText = '⏳ PPT 파일 만드는 중...';
+    btn.innerText = '⏳ PPT 준비 중...';
     btn.disabled = true;
 
     try {
-      // 1. 먼저 움직이는 GIF를 임시로 만들어 PPT 슬라이드에 삽입
-      const c = document.createElement('canvas');
-      c.width = 360; c.height = 360;
-      const ctx = c.getContext('2d');
-      const videoEl = document.getElementById('cardPreviewVideo') || document.getElementById('uploadedVideoEl');
-      const imgEl = document.getElementById('cardPreviewImg') || document.getElementById('uploadedImgEl');
-
-      let firstFrameDataUrl = '';
-      if (imgEl) firstFrameDataUrl = imgEl.src;
-      else if (videoEl) {
-        ctx.fillStyle = '#fff'; ctx.fillRect(0,0,360,360);
-        ctx.drawImage(videoEl, 0, 0, 360, 360);
-        firstFrameDataUrl = c.toDataURL('image/png');
+      const loaded = await ensurePptxLibraryLoaded();
+      if (!loaded) {
+        throw new Error('PPT 생성 도구를 불러오지 못했습니다. 인터넷 연결을 확인하거나 [🎞️ GIF로 저장]을 이용해 주세요.');
       }
 
-      let pptx = new PptxGenJS();
-      pptx.layout = 'LAYOUT_16x9'; // 16:9 와이드 화면 슬라이드
-      let slide = pptx.addSlide();
+      // 슬라이드 안에서 캐릭터가 실제로 움직이도록 GIF 데이터로 변환
+      const animatedGifDataUrl = await buildCharacterAnimatedGifDataUrl(pct => {
+        btn.innerText = `⏳ 움직이는 PPT 변환 중 (${pct}%)...`;
+      });
 
-      // 배경 및 카드 테두리 박스
-      slide.addShape(pptx.ShapeType.rect, { x: 0.5, y: 0.5, w: 12.3, h: 6.15, fill: { color: 'F0F4F8' }, line: { color: '4A90E2', width: 3 } });
-      
-      // 왼쪽 미디어 영역 흰색 바탕
-      slide.addShape(pptx.ShapeType.rect, { x: 0.8, y: 0.8, w: 4.8, h: 5.55, fill: { color: 'FFFFFF' }, line: { color: 'CBD5E1', width: 1 } });
-      if (firstFrameDataUrl) {
-        slide.addImage({ data: firstFrameDataUrl, x: 1.0, y: 1.2, w: 4.4, h: 4.4, sizing: { type: 'contain', align: 'center' } });
+      btn.innerText = '⏳ PPT 파일 저장 중...';
+      const pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_16x9'; // 13.33 x 7.5 inches
+      const slide = pptx.addSlide();
+
+      // 전체 카드 배경 테두리
+      slide.addShape(pptx.ShapeType.rect, {
+        x: 0.5, y: 0.5, w: 12.33, h: 6.5,
+        fill: { color: 'F0F4F8' },
+        line: { color: '4A90E2', width: 4 }
+      });
+
+      // 왼쪽 캐릭터 영역 흰색 상자
+      slide.addShape(pptx.ShapeType.rect, {
+        x: 0.85, y: 0.85, w: 5.0, h: 5.8,
+        fill: { color: 'FFFFFF' },
+        line: { color: 'CBD5E1', width: 1.5 }
+      });
+
+      // 움직이는 캐릭터 GIF 삽입
+      if (animatedGifDataUrl) {
+        slide.addImage({
+          data: animatedGifDataUrl,
+          x: 1.05, y: 1.15, w: 4.6, h: 4.6
+        });
       }
 
-      // 오른쪽 텍스트 영역
-      slide.addText(`1. 캐릭터 이름: ${charName}`, { x: 5.9, y: 0.9, w: 6.6, h: 0.6, fontSize: 22, bold: true, color: '4A90E2' });
-      
-      slide.addShape(pptx.ShapeType.rect, { x: 5.9, y: 1.6, w: 6.6, h: 3.8, fill: { color: 'F8FAFC' }, line: { color: 'E2E8F0', width: 1 } });
-      slide.addText(`2. 캐릭터 이야기:\n${charStory}`, { x: 6.1, y: 1.8, w: 6.2, h: 3.4, fontSize: 16, color: '334155', valign: 'top' });
+      // 오른쪽 소개글 영역
+      slide.addText(`1. 캐릭터 이름: ${charName}`, {
+        x: 6.2, y: 0.9, w: 6.3, h: 0.7,
+        fontSize: 24, bold: true, color: '4A90E2', fontFace: '맑은 고딕'
+      });
 
-      slide.addText(`3. 창조주: ${creatorName}`, { x: 5.9, y: 5.6, w: 6.6, h: 0.5, fontSize: 18, bold: true, color: '64748b' });
+      slide.addShape(pptx.ShapeType.rect, {
+        x: 6.2, y: 1.75, w: 6.3, h: 3.9,
+        fill: { color: 'FFFFFF' },
+        line: { color: 'CBD5E1', width: 1.5 }
+      });
 
-      await pptx.writeFile({ fileName: `${charName}_${creatorName}_캐릭터카드.pptx` });
+      slide.addText(`2. 캐릭터 이야기:\n\n${charStory}`, {
+        x: 6.35, y: 1.9, w: 6.0, h: 3.6,
+        fontSize: 16, color: '334155', valign: 'top', fontFace: '맑은 고딕', breakLine: true
+      });
+
+      slide.addText(`3. 창조주: ${creatorName}`, {
+        x: 6.2, y: 5.85, w: 6.3, h: 0.6,
+        fontSize: 18, bold: true, color: '64748B', fontFace: '맑은 고딕'
+      });
+
+      await pptx.writeFile({ fileName: `${charName}_${creatorName}_움직이는카드.pptx` });
       btn.innerText = origText;
       btn.disabled = false;
     } catch (err) {
@@ -816,9 +926,9 @@
   function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
   function buildStandaloneCardHtml() {
-    const charName = document.getElementById('charName').value.trim() || '캐릭터';
+    const charName = document.getElementById('charName').value.trim() || '재미재미책';
     const charStory = document.getElementById('charStory').value.trim() || '';
-    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const creatorName = document.getElementById('creatorName').value.trim() || '이물건';
 
     const mediaTag = currentMediaType === 'video'
       ? `<video id="cardMedia" src="${currentCompressedVideoDataUrl}" crossorigin="anonymous" autoplay loop muted playsinline style="width:100%; max-height:340px; object-fit:contain; border-radius:12px; background:#fff;"></video>`
@@ -827,10 +937,11 @@
     return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>${escapeHtml(charName)} - 캐릭터 소개 카드</title><style>body{font-family:'Pretendard','Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:92vh;}.card{max-width:740px;width:100%;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 25px rgba(0,0,0,0.08);display:grid;grid-template-columns:1fr 1.15fr;gap:24px;align-items:center;border:3px solid #4A90E2;}@media(max-width:650px){.card{grid-template-columns:1fr;}}h1{color:#4A90E2;margin:0 0 12px 0;font-size:24px;}.story{background:#f8fafc;padding:15px;border-radius:12px;line-height:1.6;white-space:pre-wrap;color:#334155;margin-bottom:20px;font-size:16px;}.creator{font-weight:bold;color:#64748b;font-size:16px;}</style></head><body oncontextmenu="return false"><div class="card"><div style="background:#ffffff;padding:10px;border-radius:14px;text-align:center;">${mediaTag}</div><div><h1>1. 캐릭터 이름: ${escapeHtml(charName)}</h1><div class="story">2. 캐릭터 이야기:\n${escapeHtml(charStory)}</div><div class="creator">3. 창조주: ${escapeHtml(creatorName)}</div></div></div></body></html>`;
   }
 
+  // 3. HTML 다운로드 함수
   function downloadCompleteHtmlCard() {
     if (!currentCompressedVideoDataUrl) return alert('영상을 먼저 선택해 주세요!');
-    const charName = document.getElementById('charName').value.trim() || '캐릭터';
-    const creatorName = document.getElementById('creatorName').value.trim() || '학생';
+    const charName = document.getElementById('charName').value.trim() || '재미재미책';
+    const creatorName = document.getElementById('creatorName').value.trim() || '이물건';
     const cardHtml = buildStandaloneCardHtml();
     const blob = new Blob([cardHtml], { type: 'text/html;charset=utf-8' });
     const link = document.createElement('a');
